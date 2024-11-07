@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'presentation/splash/splash_page.dart';
+import 'utils/theme_manager.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeManager(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -10,12 +17,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'DiaryKuh',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const SplashPage(),
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, _) {
+        return MaterialApp(
+          title: 'DiaryKuh',
+          theme: themeManager.currentTheme,
+          home: const SplashPage(),
+        );
+      },
     );
   }
 }

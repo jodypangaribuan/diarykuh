@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../home/home_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
@@ -41,9 +42,8 @@ class _SplashPageState extends State<SplashPage>
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (context) => const Scaffold(
-                    body: Center(child: Text('Main Screen')),
-                  )),
+            builder: (context) => const HomePage(),
+          ),
         );
       });
     });
