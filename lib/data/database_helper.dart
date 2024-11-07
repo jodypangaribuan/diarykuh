@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/note.dart';
+import '../models/note_model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -18,37 +18,46 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'diary_database.db');
+
+    // Delete existing database to force recreation
+    await deleteDatabase(path);
+
     return await openDatabase(
       path,
-      version: 1,
+      version: 1, // Reset to version 1
       onCreate: _onCreate,
     );
   }
 
-  Future _onCreate(Database db, int version) async {
+  Future<void> _onCreate(Database db, int version) async {
+    // Create table with all required columns
     await db.execute('''
       CREATE TABLE notes(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
         content TEXT,
-        date TEXT
+        mood TEXT,
+        timestamp TEXT,
+        voicePath TEXT,
+        imagePath TEXT
       )
     ''');
   }
 
   Future<int> insertNote(Note note) async {
-    Database db = await database;
+    final db = await database;
     return await db.insert('notes', note.toMap());
   }
 
   Future<List<Note>> getNotes() async {
-    Database db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('notes');
+    final db = await database;
+    final List<Map<String, dynamic>> maps =
+        await db.query('notes', orderBy: 'timestamp DESC');
     return List.generate(maps.length, (i) => Note.fromMap(maps[i]));
   }
 
   Future<int> updateNote(Note note) async {
-    Database db = await database;
+    final db = await database;
     return await db.update(
       'notes',
       note.toMap(),
@@ -58,7 +67,7 @@ class DatabaseHelper {
   }
 
   Future<int> deleteNote(int id) async {
-    Database db = await database;
+    final db = await database;
     return await db.delete(
       'notes',
       where: 'id = ?',

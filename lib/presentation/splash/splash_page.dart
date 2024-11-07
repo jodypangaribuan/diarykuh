@@ -4,11 +4,11 @@ import 'package:diarykuh/routes/routes.dart';
 import 'dart:math' as math;
 
 // Simplified color constants
-const Color kPrimaryColor = Color(0xFF4A90E2); // Main blue
-const Color kSecondaryColor = Color(0xFF6BA4E9); // Light blue
-const Color kAccentColor = Color(0xFFFFBC7C); // Warm yellow
-const Color kHeartColor = Color(0xFFFF8A80); // Soft red
-const Color kBackgroundColor = Color(0xFFF5F5F5); // Light gray background
+const Color kPrimaryColor = Color(0xFF4A90E2);
+const Color kSecondaryColor = Color(0xFF6BA4E9);
+const Color kAccentColor = Color(0xFFFFBC7C);
+const Color kHeartColor = Color(0xFFFF8A80);
+const Color kBackgroundColor = Color(0xFFF5F5F5);
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);

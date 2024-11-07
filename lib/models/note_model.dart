@@ -2,13 +2,19 @@ class Note {
   final int? id;
   final String title;
   final String content;
-  final String date;
+  final String mood;
+  final String timestamp;
+  final String? voicePath;
+  final String? imagePath;
 
   Note({
     this.id,
     required this.title,
     required this.content,
-    required this.date,
+    required this.mood,
+    required this.timestamp,
+    this.voicePath,
+    this.imagePath,
   });
 
   Map<String, dynamic> toMap() {
@@ -16,7 +22,10 @@ class Note {
       'id': id,
       'title': title,
       'content': content,
-      'date': date,
+      'mood': mood,
+      'timestamp': timestamp,
+      'voicePath': voicePath,
+      'imagePath': imagePath,
     };
   }
 
@@ -25,7 +34,10 @@ class Note {
       id: map['id'],
       title: map['title'],
       content: map['content'],
-      date: map['date'],
+      mood: map['mood'],
+      timestamp: map['timestamp'],
+      voicePath: map['voicePath'],
+      imagePath: map['imagePath'],
     );
   }
 }
