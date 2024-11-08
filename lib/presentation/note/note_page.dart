@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:animated_emoji/animated_emoji.dart';
 import '../../data/database_helper.dart';
 import '../../models/note_model.dart';
 import 'dart:io';
@@ -154,9 +155,9 @@ class _NotePageState extends State<NotePage> {
                 ),
                 child: Row(
                   children: [
-                    Text(
-                      _getMoodEmoji(_currentMood),
-                      style: const TextStyle(fontSize: 16),
+                    AnimatedEmoji(
+                      _getMoodAnimatedEmoji(_currentMood),
+                      size: 24,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -217,20 +218,20 @@ class _NotePageState extends State<NotePage> {
     );
   }
 
-  String _getMoodEmoji(String mood) {
+  AnimatedEmojiData _getMoodAnimatedEmoji(String mood) {
     switch (mood) {
       case 'Happy':
-        return '😊';
+        return AnimatedEmojis.smile;
       case 'Sad':
-        return '😢';
+        return AnimatedEmojis.loudlyCrying;
       case 'Excited':
-        return '🤩';
+        return AnimatedEmojis.starStruck;
       case 'Tired':
-        return '😴';
+        return AnimatedEmojis.sleep;
       case 'Calm':
-        return '😌';
+        return AnimatedEmojis.relieved;
       default:
-        return '😊';
+        return AnimatedEmojis.smile;
     }
   }
 

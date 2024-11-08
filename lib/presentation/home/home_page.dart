@@ -484,7 +484,7 @@ class _HomePageState extends State<HomePage> {
               return _buildEntryCard(
                 note.title,
                 note.timestamp,
-                _getMoodEmoji(note.mood),
+                note.mood, // Changed from _getMoodEmoji(note.mood) to note.mood
                 hasVoice: note.voicePath != null, // Add this parameter
                 onTap: () async {
                   if (note.voicePath != null) {
@@ -548,10 +548,13 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Row(
           children: [
-            // Emoji icon
+            // Animated Emoji icon
             SizedBox(
               height: 24,
-              child: Text(mood, style: TextStyle(fontSize: 24)),
+              child: AnimatedEmoji(
+                _getMoodAnimatedEmoji(mood),
+                size: 24,
+              ),
             ),
             const SizedBox(width: 15),
             // Note details
@@ -607,23 +610,6 @@ class _HomePageState extends State<HomePage> {
     if (hour < 12) return 'Good Morning!';
     if (hour < 17) return 'Good Afternoon!';
     return 'Good Evening!';
-  }
-
-  String _getMoodEmoji(String mood) {
-    switch (mood) {
-      case 'Happy':
-        return '😊';
-      case 'Sad':
-        return '😢';
-      case 'Excited':
-        return '🤩';
-      case 'Tired':
-        return '😴';
-      case 'Calm':
-        return '😌';
-      default:
-        return '😊';
-    }
   }
 
   @override
