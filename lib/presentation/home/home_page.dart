@@ -1,3 +1,4 @@
+import 'package:diarykuh/presentation/voice/voice_page.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -484,16 +485,35 @@ class _HomePageState extends State<HomePage> {
                 note.title,
                 note.timestamp,
                 _getMoodEmoji(note.mood),
+                hasVoice: note.voicePath != null, // Add this parameter
                 onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          NotePage(note: note, selectedMood: selectedMood),
-                    ),
-                  );
-                  if (result == true) {
-                    _loadNotes();
+                  if (note.voicePath != null) {
+                    // Navigate to VoicePage if it's a voice note
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => VoicePage(
+                          title: note.title,
+                          timestamp: note.timestamp,
+                          voicePath: note.voicePath,
+                          mood: note.mood,
+                        ),
+                      ),
+                    );
+                  } else {
+                    // Navigate to NotePage for regular notes
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NotePage(
+                          note: note,
+                          selectedMood: selectedMood,
+                        ),
+                      ),
+                    );
+                    if (result == true) {
+                      _loadNotes();
+                    }
                   }
                 },
                 onDelete: () async {
@@ -509,7 +529,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildEntryCard(String title, String time, String mood,
-      {VoidCallback? onTap, VoidCallback? onDelete}) {
+      {VoidCallback? onTap, VoidCallback? onDelete, bool hasVoice = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -528,25 +548,36 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Row(
           children: [
+            // Emoji icon
             SizedBox(
               height: 24,
-              child: Text(
-                mood,
-                style: TextStyle(fontSize: 24),
-              ),
+              child: Text(mood, style: TextStyle(fontSize: 24)),
             ),
             const SizedBox(width: 15),
+            // Note details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: isDarkMode ? Colors.white : Colors.black87,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: isDarkMode ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      if (hasVoice) ...[
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.mic,
+                          size: 16,
+                          color: kPrimaryColor,
+                        ),
+                      ],
+                    ],
                   ),
                   Text(
                     DateTime.parse(time).toString(),
@@ -558,6 +589,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
+            // Delete button
             if (onDelete != null)
               IconButton(
                 icon: const Icon(Icons.delete),

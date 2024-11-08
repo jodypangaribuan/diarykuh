@@ -1,6 +1,9 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/note_model.dart';
+import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -73,4 +76,28 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
+
+  Future<String> getDatabasePath() async {
+    return join(await getDatabasesPath(), 'diary_database.db');
+  }
+
+  Future<void> copyDatabaseToExternalStorage() async {
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      await Permission.storage.request();
+    }
+
+    String dbPath = await getDatabasePath();
+    String externalStoragePath = '/storage/emulated/0/Disini/diary_database.db';
+    File(dbPath).copy(externalStoragePath);
+    print('Database copied to: $externalStoragePath');
+  }
 }
+
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   DatabaseHelper dbHelper = DatabaseHelper();
+//   String dbPath = await dbHelper.getDatabasePath();
+//   print('Database path: $dbPath');
+//   await dbHelper.copyDatabaseToExternalStorage();
+// }

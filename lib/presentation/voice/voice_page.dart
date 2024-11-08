@@ -3,6 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:just_audio/just_audio.dart';
 
+const Color kPrimaryColor = Color(0xFF6C63FF);
+const Color kSecondaryColor = Color(0xFF8C88FF);
+const Color kBackgroundColor = Color(0xFFF8F9FF);
+
 class VoicePage extends StatefulWidget {
   final String title;
   final String timestamp;
@@ -36,26 +40,56 @@ class _VoicePageState extends State<VoicePage> {
 
   void _initializePlayer() async {
     if (widget.voicePath != null) {
-      playerController = PlayerController();
-      await playerController.preparePlayer(
-        path: widget.voicePath!,
-        noOfSamples: 100,
-      );
+      try {
+        playerController = PlayerController();
 
-      await player.setFilePath(widget.voicePath!);
-      duration = await player.duration;
+        // Configure player with higher quality settings
+        await playerController.preparePlayer(
+          path: widget.voicePath!,
+          noOfSamples: 100,
+        );
 
-      player.positionStream.listen((pos) {
-        setState(() {
-          position = pos;
+        // Set up audio player with specific configuration
+        await player.setAudioSource(
+          AudioSource.uri(Uri.file(widget.voicePath!)),
+          initialPosition: Duration.zero,
+          preload: true,
+        );
+
+        duration = await player.duration;
+
+        player.positionStream.listen((pos) {
+          if (mounted) {
+            setState(() {
+              position = pos;
+            });
+          }
         });
-      });
 
-      player.playerStateStream.listen((state) {
-        setState(() {
-          isPlaying = state.playing;
+        player.playerStateStream.listen((state) {
+          if (mounted) {
+            setState(() {
+              isPlaying = state.playing;
+            });
+          }
         });
-      });
+      } catch (e) {
+        print('Error initializing player: $e');
+      }
+    }
+  }
+
+  Future<void> _stopPlayback() async {
+    try {
+      if (isPlaying) {
+        await player.pause();
+        await playerController.pausePlayer();
+        setState(() {
+          isPlaying = false;
+        });
+      }
+    } catch (e) {
+      print('Error stopping playback: $e');
     }
   }
 
@@ -68,16 +102,22 @@ class _VoicePageState extends State<VoicePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FF),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: _buildAudioPlayer(),
-            ),
-          ],
+    return WillPopScope(
+      onWillPop: () async {
+        await _stopPlayback();
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: kBackgroundColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: _buildAudioPlayer(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -99,28 +139,36 @@ class _VoicePageState extends State<VoicePage> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () async {
+                  await _stopPlayback();
+                  Navigator.pop(context);
+                },
+                color: kPrimaryColor,
               ),
-              Text(
-                'Voice Note',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  'Voice Note',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: kPrimaryColor,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(width: 40),
+              const SizedBox(width: 40), // For balance
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           Text(
             widget.title,
             style: GoogleFonts.poppins(
               fontSize: 24,
               fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
@@ -171,32 +219,38 @@ class _VoicePageState extends State<VoicePage> {
               size: Size(MediaQuery.of(context).size.width - 88, 100),
               playerController: playerController,
               waveformType: WaveformType.fitWidth,
-              playerWaveStyle: const PlayerWaveStyle(
-                fixedWaveColor: Colors.grey,
-                liveWaveColor: Color(0xFF6C63FF),
+              playerWaveStyle: PlayerWaveStyle(
+                fixedWaveColor: Colors.grey[300]!,
+                liveWaveColor: kPrimaryColor,
                 spacing: 6,
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 _formatDuration(position),
                 style: GoogleFonts.poppins(color: Colors.grey[600]),
               ),
               Expanded(
-                child: Slider(
-                  value: position.inSeconds.toDouble(),
-                  min: 0,
-                  max: duration?.inSeconds.toDouble() ?? 0,
-                  activeColor: const Color(0xFF6C63FF),
-                  onChanged: (value) async {
-                    final position = Duration(seconds: value.toInt());
-                    await player.seek(position);
-                    await playerController.seekTo(position.inMilliseconds);
-                  },
+                child: SliderTheme(
+                  data: SliderThemeData(
+                    trackHeight: 4,
+                    thumbColor: kPrimaryColor,
+                    activeTrackColor: kPrimaryColor,
+                    inactiveTrackColor: Colors.grey[200],
+                  ),
+                  child: Slider(
+                    value: position.inSeconds.toDouble(),
+                    min: 0,
+                    max: duration?.inSeconds.toDouble() ?? 0,
+                    onChanged: (value) async {
+                      final position = Duration(seconds: value.toInt());
+                      await player.seek(position);
+                      await playerController.seekTo(position.inMilliseconds);
+                    },
+                  ),
                 ),
               ),
               Text(
@@ -205,51 +259,41 @@ class _VoicePageState extends State<VoicePage> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(
-                icon: const Icon(Icons.replay_10),
-                iconSize: 40,
-                color: const Color(0xFF6C63FF),
-                onPressed: () async {
+              _buildControlButton(
+                Icons.replay_10,
+                () async {
                   final newPosition = position - const Duration(seconds: 10);
                   await player.seek(newPosition);
                   await playerController.seekTo(newPosition.inMilliseconds);
                 },
+                small: true,
               ),
-              const SizedBox(width: 24),
-              Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6C63FF),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                  iconSize: 48,
-                  color: Colors.white,
-                  onPressed: () async {
-                    if (isPlaying) {
-                      await player.pause();
-                      await playerController.pausePlayer();
-                    } else {
-                      await player.play();
-                      await playerController.startPlayer();
-                    }
-                  },
-                ),
+              const SizedBox(width: 32),
+              _buildControlButton(
+                isPlaying ? Icons.pause : Icons.play_arrow,
+                () async {
+                  if (isPlaying) {
+                    await player.pause();
+                    await playerController.pausePlayer();
+                  } else {
+                    await player.play();
+                    await playerController.startPlayer();
+                  }
+                },
               ),
-              const SizedBox(width: 24),
-              IconButton(
-                icon: const Icon(Icons.forward_10),
-                iconSize: 40,
-                color: const Color(0xFF6C63FF),
-                onPressed: () async {
+              const SizedBox(width: 32),
+              _buildControlButton(
+                Icons.forward_10,
+                () async {
                   final newPosition = position + const Duration(seconds: 10);
                   await player.seek(newPosition);
                   await playerController.seekTo(newPosition.inMilliseconds);
                 },
+                small: true,
               ),
             ],
           ),
@@ -258,10 +302,43 @@ class _VoicePageState extends State<VoicePage> {
     );
   }
 
+  Widget _buildControlButton(IconData icon, VoidCallback onPressed,
+      {bool small = false}) {
+    final size = small ? 48.0 : 64.0;
+    final iconSize = small ? 24.0 : 32.0;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: small ? Colors.white : kPrimaryColor,
+        boxShadow: [
+          BoxShadow(
+            color: kPrimaryColor.withOpacity(small ? 0.1 : 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(icon),
+        iconSize: iconSize,
+        color: small ? kPrimaryColor : Colors.white,
+        onPressed: onPressed,
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    playerController.dispose();
-    player.dispose();
+    try {
+      _stopPlayback();
+      playerController.dispose();
+      player.dispose();
+    } catch (e) {
+      print('Error disposing player: $e');
+    }
     super.dispose();
   }
 }
