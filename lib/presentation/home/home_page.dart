@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:record/record.dart';
+import 'package:animated_emoji/animated_emoji.dart';
 import '../note/note_page.dart';
 import '../../data/database_helper.dart';
 import '../../models/note_model.dart';
@@ -302,9 +303,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              _getMoodEmoji(mood),
-              style: const TextStyle(fontSize: 24),
+            SizedBox(
+              height: 24,
+              child: AnimatedEmoji(
+                _getMoodAnimatedEmoji(mood), // Use .emoji here
+                size: 24,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -325,20 +329,20 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _getMoodEmoji(String mood) {
+  AnimatedEmojiData _getMoodAnimatedEmoji(String mood) {
     switch (mood) {
       case 'Happy':
-        return '😊';
+        return AnimatedEmojis.smile;
       case 'Sad':
-        return '😢';
+        return AnimatedEmojis.loudlyCrying;
       case 'Excited':
-        return '🤩';
+        return AnimatedEmojis.starStruck;
       case 'Tired':
-        return '😴';
+        return AnimatedEmojis.sleep;
       case 'Calm':
-        return '😌';
+        return AnimatedEmojis.relieved;
       default:
-        return '😊';
+        return AnimatedEmojis.smile;
     }
   }
 
@@ -504,7 +508,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildEntryCard(String title, String time, String emoji,
+  Widget _buildEntryCard(String title, String time, String mood,
       {VoidCallback? onTap, VoidCallback? onDelete}) {
     return GestureDetector(
       onTap: onTap,
@@ -524,7 +528,13 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 24)),
+            SizedBox(
+              height: 24,
+              child: Text(
+                mood,
+                style: TextStyle(fontSize: 24),
+              ),
+            ),
             const SizedBox(width: 15),
             Expanded(
               child: Column(
@@ -565,6 +575,23 @@ class _HomePageState extends State<HomePage> {
     if (hour < 12) return 'Good Morning!';
     if (hour < 17) return 'Good Afternoon!';
     return 'Good Evening!';
+  }
+
+  String _getMoodEmoji(String mood) {
+    switch (mood) {
+      case 'Happy':
+        return '😊';
+      case 'Sad':
+        return '😢';
+      case 'Excited':
+        return '🤩';
+      case 'Tired':
+        return '😴';
+      case 'Calm':
+        return '😌';
+      default:
+        return '😊';
+    }
   }
 
   @override

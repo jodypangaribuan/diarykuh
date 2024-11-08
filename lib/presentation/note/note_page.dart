@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/database_helper.dart';
 import '../../models/note_model.dart';
 import 'dart:io';
+import '../voice/voice_page.dart';
 
 class NotePage extends StatefulWidget {
   final Note? note;
@@ -230,6 +231,30 @@ class _NotePageState extends State<NotePage> {
         return '😌';
       default:
         return '😊';
+    }
+  }
+
+  void _handleNoteTap(Note note, String selectedMood) {
+    if (note.voicePath != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VoicePage(
+            title: note.title,
+            timestamp: note.timestamp,
+            voicePath: note.voicePath,
+            mood: note.mood,
+          ),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              NotePage(note: note, selectedMood: selectedMood),
+        ),
+      );
     }
   }
 

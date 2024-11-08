@@ -21,6 +21,9 @@ dependencies:
   intl: ^0.19.0
   record: ^5.2.0
   permission_handler: ^11.3.1
+  audio_waveforms: ^1.1.1
+  just_audio: ^0.9.42
+  animated_emoji: ^3.1.0
 
 dev_dependencies:
   flutter_test:

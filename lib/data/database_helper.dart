@@ -19,20 +19,19 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'diary_database.db');
 
-    // Delete existing database to force recreation
-    await deleteDatabase(path);
+    // Hapus baris ini yang menyebabkan database terhapus setiap restart
+    // await deleteDatabase(path);
 
     return await openDatabase(
       path,
-      version: 1, // Reset to version 1
+      version: 1,
       onCreate: _onCreate,
     );
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    // Create table with all required columns
     await db.execute('''
-      CREATE TABLE notes(
+      CREATE TABLE IF NOT EXISTS notes(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
         content TEXT,
