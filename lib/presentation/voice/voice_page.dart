@@ -1,7 +1,10 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:animated_emoji/animated_emoji.dart';
 
 const Color kPrimaryColor = Color(0xFF6C63FF);
 const Color kSecondaryColor = Color(0xFF8C88FF);
@@ -25,17 +28,33 @@ class VoicePage extends StatefulWidget {
   _VoicePageState createState() => _VoicePageState();
 }
 
-class _VoicePageState extends State<VoicePage> {
+class _VoicePageState extends State<VoicePage> with TickerProviderStateMixin {
   late PlayerController playerController;
   final player = AudioPlayer();
   bool isPlaying = false;
+  double volume = 1.0;
   Duration? duration;
   Duration position = Duration.zero;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+  late AnimationController _waveformController;
+  double playbackSpeed = 1.0;
+  bool isLooping = false;
+  Duration? loopStart;
+  Duration? loopEnd;
+  late AnimationController _emojiController;
 
   @override
   void initState() {
     super.initState();
     _initializePlayer();
+    _initializeAnimations();
+    player.setLoopMode(LoopMode.off);
+
+    _emojiController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
   }
 
   void _initializePlayer() async {
@@ -43,40 +62,70 @@ class _VoicePageState extends State<VoicePage> {
       try {
         playerController = PlayerController();
 
-        // Configure player with higher quality settings
         await playerController.preparePlayer(
           path: widget.voicePath!,
           noOfSamples: 100,
         );
 
-        // Set up audio player with specific configuration
-        await player.setAudioSource(
-          AudioSource.uri(Uri.file(widget.voicePath!)),
-          initialPosition: Duration.zero,
-          preload: true,
-        );
+        try {
+          await player.setAudioSource(
+            AudioSource.file(widget.voicePath!),
+            initialPosition: Duration.zero,
+          );
 
-        duration = await player.duration;
+          duration = await player.duration;
 
-        player.positionStream.listen((pos) {
-          if (mounted) {
-            setState(() {
-              position = pos;
-            });
-          }
-        });
+          await player.setVolume(volume);
 
-        player.playerStateStream.listen((state) {
-          if (mounted) {
-            setState(() {
-              isPlaying = state.playing;
-            });
-          }
-        });
+          player.positionStream.listen((pos) {
+            if (mounted) {
+              setState(() => position = pos);
+            }
+          });
+
+          player.playerStateStream.listen((state) {
+            if (mounted) {
+              setState(() => isPlaying = state.playing);
+            }
+          });
+        } catch (audioError) {
+          print('Error setting audio source: $audioError');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('Error loading audio file: ${audioError.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } catch (e) {
         print('Error initializing player: $e');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error initializing player: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
+  }
+
+  void _initializeAnimations() {
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _waveformController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
   }
 
   Future<void> _stopPlayback() async {
@@ -102,203 +151,434 @@ class _VoicePageState extends State<VoicePage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        await _stopPlayback();
-        return true;
+    return Scaffold(
+      backgroundColor: kBackgroundColor,
+      body: Stack(
+        children: [
+          // Background Pattern
+          CustomPaint(
+            painter: BackgroundPatternPainter(),
+            size: Size.infinite,
+          ),
+          // Main Content
+          SafeArea(
+            child: Column(
+              children: [
+                _buildModernHeader(),
+                Expanded(
+                  child: _buildModernAudioPlayer(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingElement(int index) {
+    final size = 20.0 + Random().nextDouble() * 30;
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 0.8 + (_pulseAnimation.value - 1) * (index % 3) * 0.2,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              shape: index % 3 == 0
+                  ? BoxShape.circle
+                  : index % 3 == 1
+                      ? BoxShape.rectangle
+                      : BoxShape.rectangle,
+              borderRadius: index % 3 == 2 ? BorderRadius.circular(8) : null,
+            ),
+          ),
+        );
       },
-      child: Scaffold(
-        backgroundColor: kBackgroundColor,
-        body: SafeArea(
-          child: Column(
+    );
+  }
+
+  // Update header to use mood emoji directly
+  Widget _buildModernHeader() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [kPrimaryColor, kSecondaryColor],
+        ),
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(32),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: kPrimaryColor.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
             children: [
-              _buildHeader(),
+              _buildBackButton(),
+              const SizedBox(width: 16),
               Expanded(
-                child: _buildAudioPlayer(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Voice Note',
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      widget.title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          _buildInfoRow(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackButton() {
+    return GestureDetector(
+      onTap: () async {
+        await _stopPlayback();
+        Navigator.pop(context);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new,
+          color: Colors.white,
+          size: 20,
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
+  Widget _buildInfoRow() {
+    return Row(
+      children: [
+        Icon(Icons.access_time, size: 16, color: Colors.white.withOpacity(0.9)),
+        const SizedBox(width: 8),
+        Text(
+          DateTime.parse(widget.timestamp).toString().substring(0, 16),
+          style: GoogleFonts.poppins(
+            color: Colors.white.withOpacity(0.9),
+            fontSize: 14,
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
+        ),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios),
-                onPressed: () async {
-                  await _stopPlayback();
-                  Navigator.pop(context);
-                },
-                color: kPrimaryColor,
-              ),
-              Expanded(
-                child: Text(
-                  'Voice Note',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: kPrimaryColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(width: 40), // For balance
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.title,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.access_time,
-                size: 16,
-                color: Colors.grey[600],
-              ),
+              AnimatedEmoji(_getMoodAnimatedEmoji(widget.mood), size: 20),
               const SizedBox(width: 8),
               Text(
-                DateTime.parse(widget.timestamp).toString().substring(0, 16),
+                widget.mood,
                 style: GoogleFonts.poppins(
-                  color: Colors.grey[600],
+                  color: Colors.white,
                   fontSize: 14,
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildAudioPlayer() {
+  AnimatedEmojiData _getMoodAnimatedEmoji(String mood) {
+    switch (mood) {
+      case 'Happy':
+        return AnimatedEmojis.smile;
+      case 'Sad':
+        return AnimatedEmojis.loudlyCrying;
+      case 'Excited':
+        return AnimatedEmojis.starStruck;
+      case 'Tired':
+        return AnimatedEmojis.sleep;
+      case 'Calm':
+        return AnimatedEmojis.relieved;
+      default:
+        return AnimatedEmojis.smile;
+    }
+  }
+
+  Widget _buildModernAudioPlayer() {
     return Container(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(20),
-            child: AudioFileWaveforms(
-              size: Size(MediaQuery.of(context).size.width - 88, 100),
-              playerController: playerController,
-              waveformType: WaveformType.fitWidth,
-              playerWaveStyle: PlayerWaveStyle(
-                fixedWaveColor: Colors.grey[300]!,
-                liveWaveColor: kPrimaryColor,
-                spacing: 6,
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          Row(
-            children: [
-              Text(
-                _formatDuration(position),
-                style: GoogleFonts.poppins(color: Colors.grey[600]),
-              ),
-              Expanded(
-                child: SliderTheme(
-                  data: SliderThemeData(
-                    trackHeight: 4,
-                    thumbColor: kPrimaryColor,
-                    activeTrackColor: kPrimaryColor,
-                    inactiveTrackColor: Colors.grey[200],
-                  ),
-                  child: Slider(
-                    value: position.inSeconds.toDouble(),
-                    min: 0,
-                    max: duration?.inSeconds.toDouble() ?? 0,
-                    onChanged: (value) async {
-                      final position = Duration(seconds: value.toInt());
-                      await player.seek(position);
-                      await playerController.seekTo(position.inMilliseconds);
-                    },
-                  ),
-                ),
-              ),
-              Text(
-                _formatDuration(duration ?? Duration.zero),
-                style: GoogleFonts.poppins(color: Colors.grey[600]),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildControlButton(
-                Icons.replay_10,
-                () async {
-                  final newPosition = position - const Duration(seconds: 10);
-                  await player.seek(newPosition);
-                  await playerController.seekTo(newPosition.inMilliseconds);
-                },
-                small: true,
-              ),
-              const SizedBox(width: 32),
-              _buildControlButton(
-                isPlaying ? Icons.pause : Icons.play_arrow,
-                () async {
-                  if (isPlaying) {
-                    await player.pause();
-                    await playerController.pausePlayer();
-                  } else {
-                    await player.play();
-                    await playerController.startPlayer();
-                  }
-                },
-              ),
-              const SizedBox(width: 32),
-              _buildControlButton(
-                Icons.forward_10,
-                () async {
-                  final newPosition = position + const Duration(seconds: 10);
-                  await player.seek(newPosition);
-                  await playerController.seekTo(newPosition.inMilliseconds);
-                },
-                small: true,
-              ),
-            ],
-          ),
+          _buildWaveformCard(),
+          const SizedBox(height: 24),
+          _buildSpeedControl(),
+          const SizedBox(height: 16),
+          _buildTimeControls(),
+          const SizedBox(height: 24),
+          _buildPlaybackControls(),
+          const SizedBox(height: 16),
+          _buildExtraControls(),
         ],
       ),
+    );
+  }
+
+  Widget _buildWaveformCard() {
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        return Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: kPrimaryColor.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (isPlaying)
+                Container(
+                  width: 150 * _pulseAnimation.value,
+                  height: 150 * _pulseAnimation.value,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: kPrimaryColor.withOpacity(0.2),
+                      width: 2,
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: AudioFileWaveforms(
+                  size: Size(MediaQuery.of(context).size.width - 88, 100),
+                  playerController: playerController,
+                  waveformType: WaveformType.fitWidth,
+                  playerWaveStyle: PlayerWaveStyle(
+                    fixedWaveColor: Colors.grey[300]!,
+                    liveWaveColor: kPrimaryColor,
+                    spacing: 6,
+                    waveCap: StrokeCap.round,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSpeedControl() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [0.5, 1.0, 1.5, 2.0].map((speed) {
+        final isSelected = playbackSpeed == speed;
+        return GestureDetector(
+          onTap: () async {
+            await player.setSpeed(speed);
+            setState(() => playbackSpeed = speed);
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isSelected ? kPrimaryColor : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                if (isSelected)
+                  BoxShadow(
+                    color: kPrimaryColor.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+              ],
+            ),
+            child: Text(
+              '${speed}x',
+              style: GoogleFonts.poppins(
+                color: isSelected ? Colors.white : Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildTimeControls() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              _formatDuration(position),
+              style: GoogleFonts.poppins(
+                color: kPrimaryColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              _formatDuration(duration ?? Duration.zero),
+              style: GoogleFonts.poppins(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SliderTheme(
+          data: SliderThemeData(
+            trackHeight: 4,
+            thumbColor: kPrimaryColor,
+            activeTrackColor: kPrimaryColor,
+            inactiveTrackColor: Colors.grey[200],
+            overlayColor: kPrimaryColor.withOpacity(0.2),
+            thumbShape: const RoundSliderThumbShape(
+              enabledThumbRadius: 6,
+            ),
+          ),
+          child: Slider(
+            value: position.inSeconds.toDouble().clamp(
+                  0,
+                  duration?.inSeconds.toDouble() ?? 0,
+                ),
+            min: 0,
+            max: duration?.inSeconds.toDouble() ?? 1,
+            onChanged: (value) async {
+              if (duration != null) {
+                final position = Duration(seconds: value.toInt());
+                await player.seek(position);
+                await playerController.seekTo(position.inMilliseconds);
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _togglePlayPause() async {
+    try {
+      if (isPlaying) {
+        await player.pause();
+        await playerController.pausePlayer();
+      } else {
+        if (duration != null) {
+          await player.play();
+          await playerController.startPlayer();
+        }
+      }
+    } catch (e) {
+      print('Error toggling playback: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error playing audio: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Widget _buildPlaybackControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildControlButton(
+          Icons.replay_10,
+          () async {
+            try {
+              final newPosition = position - const Duration(seconds: 10);
+              await player.seek(newPosition);
+              await playerController.seekTo(newPosition.inMilliseconds);
+            } catch (e) {
+              print('Error seeking: $e');
+            }
+          },
+          small: true,
+        ),
+        const SizedBox(width: 32),
+        _buildControlButton(
+          isPlaying ? Icons.pause : Icons.play_arrow,
+          _togglePlayPause,
+        ),
+        const SizedBox(width: 32),
+        _buildControlButton(
+          Icons.forward_10,
+          () async {
+            try {
+              final newPosition = position + const Duration(seconds: 10);
+              await player.seek(newPosition);
+              await playerController.seekTo(newPosition.inMilliseconds);
+            } catch (e) {
+              print('Error seeking: $e');
+            }
+          },
+          small: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExtraControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildControlButton(
+          isLooping ? Icons.repeat_one : Icons.repeat,
+          _toggleLoopMode,
+          small: true,
+        ),
+        const SizedBox(width: 16),
+        _buildControlButton(
+          Icons.share,
+          _shareVoiceNote,
+          small: true,
+        ),
+      ],
     );
   }
 
@@ -330,8 +610,39 @@ class _VoicePageState extends State<VoicePage> {
     );
   }
 
+  void _toggleLoopMode() {
+    setState(() {
+      isLooping = !isLooping;
+      if (isLooping) {
+        loopStart = position;
+        loopEnd = position + const Duration(seconds: 10);
+        _startLoopSection();
+      } else {
+        player.setLoopMode(LoopMode.off);
+        loopStart = loopEnd = null;
+      }
+    });
+  }
+
+  void _startLoopSection() async {
+    if (loopStart != null && loopEnd != null) {
+      await player.setLoopMode(LoopMode.off);
+      await player.seek(loopStart!);
+      await player.setClip(start: loopStart, end: loopEnd);
+      await player.setLoopMode(LoopMode.one);
+      if (!isPlaying) {
+        await player.play();
+      }
+    }
+  }
+
+  void _shareVoiceNote() {}
+
   @override
   void dispose() {
+    _emojiController.dispose();
+    _pulseController.dispose();
+    _waveformController.dispose();
     try {
       _stopPlayback();
       playerController.dispose();
@@ -341,4 +652,58 @@ class _VoicePageState extends State<VoicePage> {
     }
     super.dispose();
   }
+}
+
+class BackgroundPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = kPrimaryColor.withOpacity(0.03)
+      ..style = PaintingStyle.fill;
+
+    // Draw gradient background
+    final gradientRect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        kBackgroundColor,
+        kBackgroundColor.withOpacity(0.8),
+      ],
+    );
+
+    final gradientPaint = Paint()..shader = gradient.createShader(gradientRect);
+    canvas.drawRect(gradientRect, gradientPaint);
+
+    // Draw pattern
+    for (var i = 0; i < 3; i++) {
+      for (var j = 0; j < 5; j++) {
+        final xOffset = size.width * 0.2 * i;
+        final yOffset = size.height * 0.2 * j;
+
+        // Draw circles
+        canvas.drawCircle(
+          Offset(xOffset, yOffset),
+          30,
+          paint,
+        );
+
+        // Draw rounded rectangles
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(
+              center: Offset(xOffset + 100, yOffset + 100),
+              width: 60,
+              height: 60,
+            ),
+            const Radius.circular(15),
+          ),
+          paint,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
