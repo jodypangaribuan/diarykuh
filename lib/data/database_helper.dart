@@ -1,13 +1,13 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/note_model.dart';
-import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
+  static final _databaseVersion = 2;
 
   factory DatabaseHelper() => _instance;
 
@@ -22,13 +22,11 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'diary_database.db');
 
-    // Hapus baris ini yang menyebabkan database terhapus setiap restart
-    // await deleteDatabase(path);
-
     return await openDatabase(
       path,
-      version: 1,
+      version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -41,9 +39,16 @@ class DatabaseHelper {
         mood TEXT,
         timestamp TEXT,
         voicePath TEXT,
-        imagePath TEXT
+        imagePath TEXT,
+        imagePaths TEXT
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE notes ADD COLUMN imagePaths TEXT');
+    }
   }
 
   Future<int> insertNote(Note note) async {

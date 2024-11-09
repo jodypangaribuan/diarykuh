@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:diarykuh/presentation/splash/splash_page.dart';
 import 'package:diarykuh/routes/routes.dart';
 
 void main() {

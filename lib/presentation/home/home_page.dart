@@ -10,12 +10,12 @@ import 'package:animated_emoji/animated_emoji.dart';
 import '../note/note_page.dart';
 import '../../data/database_helper.dart';
 import '../../models/note_model.dart';
+import '../note/note_detail_page.dart';
 
-// Updated color constants
-const Color kPrimaryColor = Color(0xFF6C63FF);
-const Color kSecondaryColor = Color(0xFF8C88FF);
+const Color kPrimaryColor = Color.fromARGB(255, 119, 112, 248);
+const Color kSecondaryColor = Color.fromARGB(255, 154, 151, 255);
 const Color kAccentColor = Color(0xFFFF9E9E);
-const Color kBackgroundColor = Color(0xFFF8F9FF);
+const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
 const Color kTextColor = Color(0xFF2D3142);
 
 class HomePage extends StatefulWidget {
@@ -98,7 +98,6 @@ class _HomePageState extends State<HomePage> {
     try {
       await _audioRecorder.stop();
 
-      // Create a new note with the voice recording
       final note = Note(
         title: 'Voice Note',
         content: '',
@@ -109,7 +108,7 @@ class _HomePageState extends State<HomePage> {
       );
 
       await _dbHelper.insertNote(note);
-      _loadNotes(); // Refresh the list
+      _loadNotes();
       setState(() => _isRecording = false);
     } catch (e) {
       print('Error stopping recording: $e');
@@ -166,8 +165,6 @@ class _HomePageState extends State<HomePage> {
           Row(
             children: [
               _buildThemeToggle(),
-              const SizedBox(width: 12),
-              _buildNotificationBell(),
             ],
           ),
         ],
@@ -181,7 +178,7 @@ class _HomePageState extends State<HomePage> {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isDarkMode ? Colors.grey[800] : Colors.white,
+          color: isDarkMode ? Colors.grey[800] : Colors.grey[50],
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             if (!isDarkMode)
@@ -290,7 +287,7 @@ class _HomePageState extends State<HomePage> {
               ? kAccentColor
               : isDarkMode
                   ? Colors.grey[800]
-                  : Colors.white,
+                  : Colors.grey[50],
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             if (!isDarkMode)
@@ -307,7 +304,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               height: 24,
               child: AnimatedEmoji(
-                _getMoodAnimatedEmoji(mood), // Use .emoji here
+                _getMoodAnimatedEmoji(mood),
                 size: 24,
               ),
             ),
@@ -345,45 +342,6 @@ class _HomePageState extends State<HomePage> {
       default:
         return AnimatedEmojis.smile;
     }
-  }
-
-  Widget _buildNotificationBell() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[800] : Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          if (!isDarkMode)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Icon(
-            Icons.notifications_outlined,
-            color: isDarkMode ? Colors.white : kTextColor,
-            size: 24,
-          ),
-          Positioned(
-            right: 0,
-            top: 0,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: kAccentColor,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildQuickActionsNew() {
@@ -484,12 +442,11 @@ class _HomePageState extends State<HomePage> {
               return _buildEntryCard(
                 note.title,
                 note.timestamp,
-                note.mood, // Changed from _getMoodEmoji(note.mood) to note.mood
-                hasVoice: note.voicePath != null, // Add this parameter
+                note.mood,
+                hasVoice: note.voicePath != null,
                 onTap: () async {
                   if (note.voicePath != null) {
-                    // Navigate to VoicePage if it's a voice note
-                    await Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => VoicePage(
@@ -501,19 +458,13 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   } else {
-                    // Navigate to NotePage for regular notes
-                    final result = await Navigator.push(
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => NotePage(
-                          note: note,
-                          selectedMood: selectedMood,
-                        ),
+                        builder: (context) => NoteDetailPage(note: note),
                       ),
                     );
-                    if (result == true) {
-                      _loadNotes();
-                    }
+                    _loadNotes();
                   }
                 },
                 onDelete: () async {
@@ -536,7 +487,7 @@ class _HomePageState extends State<HomePage> {
         margin: const EdgeInsets.only(bottom: 15),
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: isDarkMode ? Colors.grey[850] : Colors.white,
+          color: isDarkMode ? Colors.grey[850] : Colors.grey[50],
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
@@ -547,8 +498,8 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Animated Emoji icon
             SizedBox(
               height: 24,
               child: AnimatedEmoji(
@@ -557,19 +508,22 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(width: 15),
-            // Note details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: isDarkMode ? Colors.white : Colors.black87,
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: isDarkMode ? Colors.white : Colors.black87,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                       if (hasVoice) ...[
@@ -592,12 +546,13 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            // Delete button
             if (onDelete != null)
               IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: onDelete,
                 color: kAccentColor,
+                constraints: const BoxConstraints(),
+                padding: const EdgeInsets.only(left: 8),
               ),
           ],
         ),

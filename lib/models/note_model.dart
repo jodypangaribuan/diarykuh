@@ -6,6 +6,7 @@ class Note {
   final String timestamp;
   final String? voicePath;
   final String? imagePath;
+  final List<String>? imagePaths; // Update to support multiple images
 
   Note({
     this.id,
@@ -15,6 +16,7 @@ class Note {
     required this.timestamp,
     this.voicePath,
     this.imagePath,
+    this.imagePaths = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -26,10 +28,17 @@ class Note {
       'timestamp': timestamp,
       'voicePath': voicePath,
       'imagePath': imagePath,
+      'imagePaths': imagePaths?.join(','), // Store as comma-separated string
     };
   }
 
   factory Note.fromMap(Map<String, dynamic> map) {
+    String? imagePaths = map['imagePaths'];
+    List<String> paths = [];
+    if (imagePaths != null && imagePaths.isNotEmpty) {
+      paths = imagePaths.split(',').where((e) => e.isNotEmpty).toList();
+    }
+
     return Note(
       id: map['id'],
       title: map['title'],
@@ -38,6 +47,7 @@ class Note {
       timestamp: map['timestamp'],
       voicePath: map['voicePath'],
       imagePath: map['imagePath'],
+      imagePaths: paths,
     );
   }
 }

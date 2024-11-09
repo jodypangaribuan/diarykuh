@@ -9,6 +9,8 @@ import './forget_password_page.dart';
 import './signup_page.dart';
 import '../home/home_page.dart';
 
+const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
+
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -26,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
     Size size = MediaQuery.of(context).size;
     return SafeArea(
       child: Scaffold(
-        backgroundColor: const Color(0xffEEF1F3),
+        backgroundColor: kBackgroundColor,
         body: Column(
           children: [
             const PageHeader(),

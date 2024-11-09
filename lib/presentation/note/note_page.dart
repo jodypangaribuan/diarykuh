@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_emoji/animated_emoji.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../data/database_helper.dart';
 import '../../models/note_model.dart';
-import 'dart:io';
 import '../voice/voice_page.dart';
+import 'dart:io';
 
 class NotePage extends StatefulWidget {
   final Note? note;
@@ -23,6 +24,8 @@ class _NotePageState extends State<NotePage> {
   final _dbHelper = DatabaseHelper();
   bool _isEdited = false;
   late String _currentMood;
+  final List<String> _selectedImages = [];
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -31,6 +34,19 @@ class _NotePageState extends State<NotePage> {
     if (widget.note != null) {
       _titleController.text = widget.note!.title;
       _contentController.text = widget.note!.content;
+      if (widget.note!.imagePaths != null) {
+        _selectedImages.addAll(widget.note!.imagePaths!);
+      }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _selectedImages.add(image.path);
+        _isEdited = true;
+      });
     }
   }
 
@@ -43,6 +59,7 @@ class _NotePageState extends State<NotePage> {
       timestamp: DateTime.now().toString(),
       voicePath: widget.note?.voicePath,
       imagePath: widget.note?.imagePath,
+      imagePaths: _selectedImages,
     );
 
     if (widget.note == null) {
@@ -54,6 +71,76 @@ class _NotePageState extends State<NotePage> {
     Navigator.pop(context, true);
   }
 
+  Widget _buildImagePreview() {
+    if (_selectedImages.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      height: 100,
+      margin: const EdgeInsets.all(16),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _selectedImages.length + 1,
+        itemBuilder: (context, index) {
+          if (index == _selectedImages.length) {
+            return _buildAddImageButton();
+          }
+          return _buildImageThumbnail(index);
+        },
+      ),
+    );
+  }
+
+  Widget _buildImageThumbnail(int index) {
+    return Stack(
+      children: [
+        Container(
+          width: 100,
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            image: DecorationImage(
+              image: FileImage(File(_selectedImages[index])),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 12,
+          child: GestureDetector(
+            onTap: () => setState(() {
+              _selectedImages.removeAt(index);
+              _isEdited = true;
+            }),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, color: Colors.white, size: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddImageButton() {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        width: 100,
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(Icons.add_photo_alternate, color: Colors.grey),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,6 +149,7 @@ class _NotePageState extends State<NotePage> {
         child: Column(
           children: [
             _buildHeader(),
+            _buildImagePreview(),
             Expanded(
               child: _buildNoteContent(),
             ),
@@ -97,10 +185,8 @@ class _NotePageState extends State<NotePage> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.attachment),
-                    onPressed: () {
-                      // Implement attachment functionality
-                    },
+                    icon: const Icon(Icons.photo_camera),
+                    onPressed: _pickImage,
                   ),
                   IconButton(
                     icon: const Icon(Icons.more_vert),
@@ -126,7 +212,10 @@ class _NotePageState extends State<NotePage> {
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
+              counterText: '', // Hide character counter
             ),
+            maxLines: 1,
+            maxLength: 100, // Limit title length
             onChanged: (value) => setState(() => _isEdited = true),
           ),
           const SizedBox(height: 8),

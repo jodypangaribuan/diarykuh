@@ -9,6 +9,8 @@ import 'package:diarykuh/common/page_header.dart';
 import 'package:diarykuh/common/page_heading.dart';
 import './login_page.dart';
 
+const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
+
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
 
@@ -40,7 +42,7 @@ class _SignupPageState extends State<SignupPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: const Color(0xffEEF1F3),
+        backgroundColor: kBackgroundColor,
         body: SingleChildScrollView(
           child: Form(
             key: _signupFormKey,

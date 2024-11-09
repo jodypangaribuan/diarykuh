@@ -3,12 +3,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:diarykuh/routes/routes.dart';
 import 'dart:math' as math;
 
-// Simplified color constants
-const Color kPrimaryColor = Color(0xFF4A90E2);
-const Color kSecondaryColor = Color(0xFF6BA4E9);
-const Color kAccentColor = Color(0xFFFFBC7C);
-const Color kHeartColor = Color(0xFFFF8A80);
-const Color kBackgroundColor = Color(0xFFF5F5F5);
+const Color kPrimaryColor = Color.fromARGB(255, 119, 112, 248);
+const Color kSecondaryColor = Color.fromARGB(255, 154, 151, 255);
+const Color kAccentColor = Color(0xFFFF9E9E);
+const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
+const Color kTextColor = Color(0xFF2D3142);
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
