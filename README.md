@@ -1,16 +1,126 @@
-# diarykuh
+# DiaryKuh - Your Personal Digital Diary App
 
-A new Flutter project.
+## Description
 
-## Getting Started
+DiaryKuh is a comprehensive personal diary application that allows users to document their thoughts, memories, and experiences through text notes, photos, and voice recordings. The app provides a secure and intuitive platform for users to maintain their daily journals with multiple media formats.
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- 📝 Text Notes Creation
+- 📸 Photo Diary
+- 🎤 Voice Notes Recording
+- 🔐 Secure Authentication
+- 🌓 Dark/Light Theme Support
+- 💾 Offline Storage Support
+- 🔄 Auto-save Functionality
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Project Structure
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+lib/
+│
+├── common/ # Reusable components and widgets
+│ ├── custom_form_button.dart # Custom button widget for forms
+│ ├── custom_input_field.dart # Custom input field widget for forms
+│ ├── page_header.dart # Common header widget for pages
+│ └── page_heading.dart # Common heading widget for pages
+│
+├── data/ # Data layer containing data sources
+│ └── database_helper.dart # SQLite database helper for local storage
+│
+├── models/ # Data models or entities
+│ ├── note_model.dart # Model class for diary notes
+│ └── user_model.dart # Model class for user data
+│
+├── presentation/ # UI layer containing all app screens
+│ ├── auth/ # Authentication-related screens
+│ │ ├── forget_password_page.dart # Password recovery screen
+│ │ ├── login_page.dart # Login screen
+│ │ └── signup_page.dart # Registration screen
+│ │
+│ ├── home/ # Home screen-related files
+│ │ └── home_page.dart # Main home screen of the app
+│ │
+│ ├── note/ # Note management screens
+│ │ ├── note_detail_page.dart # Note details/viewing screen
+│ │ └── note_page.dart # Note creation/editing screen
+│ │
+│ ├── photo/ # Photo diary-related screens
+│ │ ├── photo_detail_page.dart # Photo viewing screen
+│ │ └── photo_page.dart # Photo capture/upload screen
+│ │
+│ ├── splash/ # Splash screen
+│ │ └── splash_page.dart # Initial loading screen
+│ │
+│ └── voice/ # Voice note-related screens
+│ └── voice_page.dart # Voice recording/playback screen
+│
+├── routes/ # Navigation and routing
+│ └── routes.dart # Route definitions and navigation logic
+│
+├── utils/ # Utility classes and helpers
+│ ├── color_utils.dart # Color constants and theme colors
+│ ├── theme_manager.dart # Theme management utilities
+│ └── firebase_options.dart # Firebase configuration options
+│
+└── main.dart # Application entry point
+
+## Technical Specifications
+
+### Prerequisites
+
+- Flutter SDK: ^3.0.0
+- Dart SDK: ^2.17.0
+- Android Studio / VS Code
+- iOS Simulator / Android Emulator
+
+### Dependencies
+
+dependencies:
+flutter:
+sdk: flutter
+sqflite: ^2.0.0 # Local database
+provider: ^6.0.0 # State management
+firebase_core: ^2.0.0 # Firebase core
+firebase_auth: ^4.0.0 # Authentication
+image_picker: ^0.8.0 # Image capture/selection
+audio_recorder: ^1.0.0 # Voice recording
+path_provider: ^2.0.0 # File system access
+
+## Installation
+
+1. Clone the repository:
+   git clone https://github.com/yourusername/diarykuh.git
+
+2. Navigate to project directory:
+   cd diarykuh
+
+3. Install dependencies:
+   flutter pub get
+
+4. Run the app:
+   flutter run
+
+## Architecture
+
+The app follows a clean architecture pattern with clear separation of concerns:
+
+- **Data Layer**: Handles data operations and persistence
+- **Domain Layer**: Contains business logic and models
+- **Presentation Layer**: Manages UI and user interactions
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## Contact
+
+Your Name - [@yourusername](https://twitter.com/yourusername)
+Project Link: [https://github.com/yourusername/diarykuh](https://github.com/yourusername/diarykuh)
