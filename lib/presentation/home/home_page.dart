@@ -115,21 +115,37 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    // Reload data
+    await _loadPreferences();
+    await _loadNotes();
+    setState(() {
+      // Update current date/time if needed
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.grey[900] : kBackgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              _buildProfileSection(),
-              _buildMoodTrackerNew(),
-              _buildQuickActionsNew(),
-              _buildRecentEntriesNew(),
-            ],
+        child: RefreshIndicator(
+          onRefresh: _onRefresh,
+          color: kPrimaryColor,
+          backgroundColor: isDarkMode ? Colors.grey[850] : Colors.white,
+          child: SingleChildScrollView(
+            physics:
+                const AlwaysScrollableScrollPhysics(), // Important for refresh to work
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                _buildProfileSection(),
+                _buildMoodTrackerNew(),
+                _buildQuickActionsNew(),
+                _buildRecentEntriesNew(),
+              ],
+            ),
           ),
         ),
       ),
@@ -479,6 +495,28 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  String _getRelativeTime(String timestamp) {
+    final now = DateTime.now();
+    final date = DateTime.parse(timestamp);
+    final difference = now.difference(date);
+
+    if (difference.inSeconds < 60) {
+      return '${difference.inSeconds} detik yang lalu';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} menit yang lalu';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} jam yang lalu';
+    } else if (difference.inDays < 30) {
+      return '${difference.inDays} hari yang lalu';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return '$months bulan yang lalu';
+    } else {
+      final years = (difference.inDays / 365).floor();
+      return '$years tahun yang lalu';
+    }
+  }
+
   Widget _buildEntryCard(String title, String time, String mood,
       {VoidCallback? onTap, VoidCallback? onDelete, bool hasVoice = false}) {
     return GestureDetector(
@@ -537,7 +575,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   Text(
-                    DateTime.parse(time).toString(),
+                    _getRelativeTime(time),
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: Colors.grey,
