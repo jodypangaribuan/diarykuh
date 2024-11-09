@@ -225,13 +225,17 @@ class NoteDetailPage extends StatelessWidget {
   }
 
   Widget _buildContentSection() {
+    if (note.content.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       margin: const EdgeInsets.all(24),
       child: RichText(
         text: TextSpan(
           children: [
             TextSpan(
-              text: note.content.substring(0, 1),
+              text: note.content.isNotEmpty ? note.content.substring(0, 1) : '',
               style: GoogleFonts.poppins(
                 fontSize: 56,
                 height: 1.2,
@@ -240,7 +244,7 @@ class NoteDetailPage extends StatelessWidget {
               ),
             ),
             TextSpan(
-              text: note.content.substring(1),
+              text: note.content.length > 1 ? note.content.substring(1) : '',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 height: 1.8,

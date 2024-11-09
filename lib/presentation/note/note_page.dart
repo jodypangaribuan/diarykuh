@@ -7,6 +7,12 @@ import '../../models/note_model.dart';
 import '../voice/voice_page.dart';
 import 'dart:io';
 
+const Color kPrimaryColor = Color.fromARGB(255, 119, 112, 248);
+const Color kSecondaryColor = Color.fromARGB(255, 154, 151, 255);
+const Color kAccentColor = Color(0xFFFF9E9E);
+const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
+const Color kTextColor = Color(0xFF2D3142);
+
 class NotePage extends StatefulWidget {
   final Note? note;
   final String selectedMood;
@@ -24,6 +30,7 @@ class _NotePageState extends State<NotePage> {
   final _dbHelper = DatabaseHelper();
   bool _isEdited = false;
   late String _currentMood;
+  int _characterCount = 0;
   final List<String> _selectedImages = [];
   final ImagePicker _picker = ImagePicker();
 
@@ -34,10 +41,17 @@ class _NotePageState extends State<NotePage> {
     if (widget.note != null) {
       _titleController.text = widget.note!.title;
       _contentController.text = widget.note!.content;
-      if (widget.note!.imagePaths != null) {
+      _characterCount = _contentController.text.length;
+      if (widget.note?.imagePaths != null) {
         _selectedImages.addAll(widget.note!.imagePaths!);
       }
     }
+
+    _contentController.addListener(() {
+      setState(() {
+        _characterCount = _contentController.text.length;
+      });
+    });
   }
 
   Future<void> _pickImage() async {
@@ -58,7 +72,6 @@ class _NotePageState extends State<NotePage> {
       mood: _currentMood,
       timestamp: DateTime.now().toString(),
       voicePath: widget.note?.voicePath,
-      imagePath: widget.note?.imagePath,
       imagePaths: _selectedImages,
     );
 
@@ -71,21 +84,178 @@ class _NotePageState extends State<NotePage> {
     Navigator.pop(context, true);
   }
 
-  Widget _buildImagePreview() {
-    if (_selectedImages.isEmpty) return const SizedBox.shrink();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kBackgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: _buildNoteContent(),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: _buildSaveButton(),
+    );
+  }
 
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [kPrimaryColor, kSecondaryColor],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: kPrimaryColor.withOpacity(0.2),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              Text(
+                '$_characterCount characters',
+                style: GoogleFonts.poppins(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          TextField(
+            controller: _titleController,
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Title',
+              border: InputBorder.none,
+              hintStyle: GoogleFonts.poppins(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+              counterText: '', // This hides the character counter
+            ),
+            maxLines: 1,
+            maxLength: 100,
+            onChanged: (value) => setState(() => _isEdited = true),
+          ),
+          Row(
+            children: [
+              Icon(Icons.access_time,
+                  size: 16, color: Colors.white.withOpacity(0.9)),
+              const SizedBox(width: 8),
+              Text(
+                DateTime.now().toString().substring(0, 16),
+                style: GoogleFonts.poppins(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    AnimatedEmoji(_getMoodAnimatedEmoji(_currentMood),
+                        size: 20),
+                    const SizedBox(width: 4),
+                    Text(
+                      _currentMood,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoteContent() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          if (_selectedImages.isNotEmpty) _buildImagePreview(),
+          Expanded(
+            child: TextField(
+              controller: _contentController,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                height: 1.5,
+                color: kTextColor,
+              ),
+              maxLines: null,
+              decoration: InputDecoration(
+                hintText: 'Write your thoughts...',
+                border: InputBorder.none,
+                hintStyle: GoogleFonts.poppins(
+                  color: Colors.grey.withOpacity(0.7),
+                  fontSize: 16,
+                ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.attach_file),
+                  onPressed: _pickImage,
+                  color: kPrimaryColor.withOpacity(0.5),
+                ),
+              ),
+              onChanged: (value) => setState(() => _isEdited = true),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreview() {
     return Container(
       height: 100,
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _selectedImages.length + 1,
-        itemBuilder: (context, index) {
-          if (index == _selectedImages.length) {
-            return _buildAddImageButton();
-          }
-          return _buildImageThumbnail(index);
-        },
+        itemCount: _selectedImages.length,
+        itemBuilder: (context, index) => _buildImageThumbnail(index),
       ),
     );
   }
@@ -126,182 +296,35 @@ class _NotePageState extends State<NotePage> {
     );
   }
 
-  Widget _buildAddImageButton() {
-    return GestureDetector(
-      onTap: _pickImage,
-      child: Container(
-        width: 100,
-        margin: const EdgeInsets.only(right: 8),
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(Icons.add_photo_alternate, color: Colors.grey),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildImagePreview(),
-            Expanded(
-              child: _buildNoteContent(),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: _buildSaveButton(),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios),
-                onPressed: () => Navigator.pop(context),
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.photo_camera),
-                    onPressed: _pickImage,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.more_vert),
-                    onPressed: () {
-                      // Implement more options
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          TextField(
-            controller: _titleController,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Title',
-              border: InputBorder.none,
-              hintStyle: GoogleFonts.poppins(
-                color: Colors.grey,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-              counterText: '', // Hide character counter
-            ),
-            maxLines: 1,
-            maxLength: 100, // Limit title length
-            onChanged: (value) => setState(() => _isEdited = true),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                Icons.access_time,
-                size: 16,
-                color: Colors.grey[600],
-              ),
-              const SizedBox(width: 8),
-              Text(
-                DateTime.now().toString().substring(0, 16),
-                style: GoogleFonts.poppins(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6C63FF).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    AnimatedEmoji(
-                      _getMoodAnimatedEmoji(_currentMood),
-                      size: 24,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _currentMood,
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF6C63FF),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoteContent() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: TextField(
-        controller: _contentController,
-        style: GoogleFonts.poppins(
-          fontSize: 16,
-          height: 1.5,
-        ),
-        maxLines: null,
-        decoration: InputDecoration(
-          hintText: 'Write your thoughts...',
-          border: InputBorder.none,
-          hintStyle: GoogleFonts.poppins(
-            color: Colors.grey,
-            fontSize: 16,
-          ),
-        ),
-        onChanged: (value) => setState(() => _isEdited = true),
-      ),
-    );
-  }
-
   Widget _buildSaveButton() {
     return AnimatedOpacity(
       opacity: _isEdited ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 200),
-      child: FloatingActionButton.extended(
-        onPressed: _saveNote,
-        backgroundColor: const Color(0xFF6C63FF),
-        icon: const Icon(Icons.save),
-        label: Text(
-          'Save',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w500,
-          ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 32),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FloatingActionButton.small(
+              heroTag: 'discard',
+              onPressed: () => Navigator.pop(context),
+              backgroundColor: kAccentColor,
+              child: const Icon(Icons.close, color: Colors.white),
+            ),
+            FloatingActionButton.extended(
+              heroTag: 'save',
+              onPressed: _saveNote,
+              backgroundColor: kPrimaryColor,
+              elevation: 4,
+              icon: const Icon(Icons.save_outlined),
+              label: Text(
+                'Save Note',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
