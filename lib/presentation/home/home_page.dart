@@ -20,6 +20,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:diarykuh/utils/color_utils.dart';
+import '../../models/user_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -45,6 +46,7 @@ class _HomePageState extends State<HomePage>
     'Album': Color(0xFFFFB7B7),
     'Voice': kSecondaryColor,
   };
+  UserModel? currentUser;
 
   String get currentUserId =>
       prefs.getString('currentUserId') ?? 'default_user';
@@ -56,9 +58,25 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _initializeApp() async {
+    prefs = await SharedPreferences.getInstance(); // Move this line up
     await initializeDateFormatting('id_ID', null);
+    await _loadCurrentUser(); // Load user first
     await _loadPreferences();
     await _loadNotes();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    try {
+      final userId = prefs.getString('currentUserId');
+      if (userId != null) {
+        final user = await _dbHelper.getUser(userId);
+        setState(() {
+          currentUser = user;
+        });
+      }
+    } catch (e) {
+      // Silent error handling
+    }
   }
 
   Future<void> _loadPreferences() async {
@@ -320,8 +338,21 @@ class _HomePageState extends State<HomePage>
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: Colors.white,
-            child: Icon(Icons.person, color: kPrimaryColor),
+            backgroundColor: Colors.grey[200],
+            child: currentUser?.imagePath != null &&
+                    currentUser!.imagePath!.isNotEmpty
+                ? ClipOval(
+                    child: Image.file(
+                      File(currentUser!.imagePath!),
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.person, color: Colors.grey);
+                      },
+                    ),
+                  )
+                : const Icon(Icons.person, color: Colors.grey),
           ),
           const SizedBox(width: 15),
           Expanded(
@@ -329,13 +360,16 @@ class _HomePageState extends State<HomePage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Welcome back!',
+                  currentUser?.name != null
+                      ? 'Welcome back, ${currentUser!.name}!'
+                      : 'Welcome back!',
                   style: GoogleFonts.poppins(
                     color: Colors.black,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 8),
                 Text(
                   'How are you feeling today?',
                   style: GoogleFonts.poppins(
