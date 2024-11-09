@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:diarykuh/presentation/auth/login_page.dart';
+import 'package:diarykuh/presentation/photo/photo_detail_page.dart';
 import 'package:diarykuh/presentation/photo/photo_page.dart';
 import 'package:diarykuh/presentation/voice/voice_page.dart';
 import 'package:flutter/material.dart';
@@ -16,12 +19,7 @@ import '../note/note_detail_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-
-const Color kPrimaryColor = Color.fromARGB(255, 119, 112, 248);
-const Color kSecondaryColor = Color.fromARGB(255, 154, 151, 255);
-const Color kAccentColor = Color(0xFFFF9E9E);
-const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
-const Color kTextColor = Color(0xFF2D3142);
+import 'package:diarykuh/utils/color_utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -577,6 +575,17 @@ class _HomePageState extends State<HomePage>
                           voicePath: note.voicePath,
                           mood: note.mood,
                           userId: currentUserId, // Add userId
+                        ),
+                      ),
+                    );
+                  } else if (note.imagePath != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PhotoDetailPage(
+                          image: File(note.imagePath!),
+                          mood: note.mood,
+                          content: note.content, // Pass content
                         ),
                       ),
                     );

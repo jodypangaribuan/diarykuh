@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_emoji/animated_emoji.dart';
 import '../../data/database_helper.dart'; // Add this import
-
-const Color kPrimaryColor = Color.fromARGB(255, 119, 112, 248);
-const Color kAccentColor = Color(0xFFFF9E9E);
+import 'package:diarykuh/utils/color_utils.dart';
 
 class PhotoDetailPage extends StatefulWidget {
   final File image;

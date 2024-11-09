@@ -10,8 +10,7 @@ import 'package:diarykuh/common/custom_input_field.dart';
 import 'package:diarykuh/common/page_header.dart';
 import 'package:diarykuh/common/page_heading.dart';
 import './login_page.dart';
-
-const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
+import 'package:diarykuh/utils/color_utils.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);

@@ -2,16 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:animated_emoji/animated_emoji.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../data/database_helper.dart';
 import '../../models/note_model.dart';
 import 'photo_detail_page.dart';
-
-const Color kPrimaryColor = Color.fromARGB(255, 119, 112, 248);
-const Color kSecondaryColor = Color.fromARGB(255, 154, 151, 255);
-const Color kAccentColor = Color(0xFFFF9E9E);
-const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
+import 'package:diarykuh/utils/color_utils.dart';
 
 class PhotoPage extends StatefulWidget {
   final String selectedMood;
@@ -163,6 +158,8 @@ class _PhotoPageState extends State<PhotoPage> {
             builder: (context) => PhotoDetailPage(
               image: image,
               mood: widget.selectedMood,
+              content:
+                  _images.map((img) => img.path).join('|'), // Pass image paths
             ),
           ),
         );

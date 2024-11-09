@@ -5,10 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:animated_emoji/animated_emoji.dart';
-
-const Color kPrimaryColor = Color(0xFF6C63FF);
-const Color kSecondaryColor = Color(0xFF8C88FF);
-const Color kBackgroundColor = Color(0xFFF8F9FF);
+import 'package:diarykuh/utils/color_utils.dart';
 
 class VoicePage extends StatefulWidget {
   final String title;

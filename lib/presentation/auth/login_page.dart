@@ -9,8 +9,7 @@ import 'package:diarykuh/common/page_heading.dart';
 import './forget_password_page.dart';
 import './signup_page.dart';
 import '../home/home_page.dart';
-
-const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
+import 'package:diarykuh/utils/color_utils.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);

@@ -5,12 +5,7 @@ import 'package:animated_emoji/animated_emoji.dart';
 import 'package:intl/intl.dart';
 import '../../models/note_model.dart';
 import 'note_page.dart';
-
-const Color kPrimaryColor = Color.fromARGB(255, 119, 112, 248);
-const Color kSecondaryColor = Color.fromARGB(255, 154, 151, 255);
-const Color kAccentColor = Color(0xFFFF9E9E);
-const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
-const Color kTextColor = Color(0xFF2D3142);
+import 'package:diarykuh/utils/color_utils.dart';
 
 class NoteDetailPage extends StatefulWidget {
   final Note note;
