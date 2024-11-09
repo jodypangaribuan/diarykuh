@@ -92,16 +92,28 @@ path_provider: ^2.0.0 # File system access
 ## Installation
 
 1. Clone the repository:
-   git clone https://github.com/yourusername/diarykuh.git
+
+```bash
+   git clone https://github.com/jodypangaribuan/diarykuh.git
+```
 
 2. Navigate to project directory:
+
+```bash
    cd diarykuh
+```
 
 3. Install dependencies:
+
+```bash
    flutter pub get
+```
 
 4. Run the app:
+
+```bash
    flutter run
+```
 
 ## Architecture
 
@@ -125,5 +137,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-Your Name - [@yourusername](https://twitter.com/yourusername)
-Project Link: [https://github.com/yourusername/diarykuh](https://github.com/yourusername/diarykuh)
+Your Name - [@jodypangaribuan](https://twitter.com/jodypangaribuan)
+Project Link: [https://github.com/jodypangaribuan/diarykuh](https://github.com/jodypangaribuan/diarykuh)
