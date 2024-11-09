@@ -137,5 +137,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-Jody Pangaribuan - [@jodypangaribuan](https://twitter.com/jodypangaribuan)
+Jody Pangaribuan - [@jodypangaribuan](https://github.com/jodypangaribuan)
 Project Link: [https://github.com/jodypangaribuan/diarykuh](https://github.com/jodypangaribuan/diarykuh)
