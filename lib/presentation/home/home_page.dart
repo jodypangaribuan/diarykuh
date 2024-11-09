@@ -11,6 +11,7 @@ import '../note/note_page.dart';
 import '../../data/database_helper.dart';
 import '../../models/note_model.dart';
 import '../note/note_detail_page.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 const Color kPrimaryColor = Color.fromARGB(255, 119, 112, 248);
 const Color kSecondaryColor = Color.fromARGB(255, 154, 151, 255);
@@ -40,8 +41,13 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadPreferences();
-    _loadNotes();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await initializeDateFormatting('id_ID', null);
+    await _loadPreferences();
+    await _loadNotes();
   }
 
   Future<void> _loadPreferences() async {
@@ -170,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Text(
-                DateFormat('EEEE, d MMMM').format(DateTime.now()),
+                DateFormat('EEEE, d MMMM', 'id_ID').format(DateTime.now()),
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: isDarkMode ? Colors.white70 : Colors.grey[600],
