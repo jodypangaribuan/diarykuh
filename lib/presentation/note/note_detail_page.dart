@@ -22,10 +22,23 @@ class NoteDetailPage extends StatefulWidget {
 }
 
 class _NoteDetailPageState extends State<NoteDetailPage> {
+  Note? _currentNote;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentNote = widget.note;
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Guard against null _currentNote
+    if (_currentNote == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: kBackgroundColor, // Update warna background
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(context),
       body: SingleChildScrollView(
@@ -35,7 +48,8 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
           children: [
             _buildHeaderSection(),
             _buildContentSection(),
-            if (widget.note.imagePaths?.isNotEmpty ?? false) _buildImageGrid(),
+            if (_currentNote?.imagePaths?.isNotEmpty ?? false)
+              _buildImageGrid(),
           ],
         ),
       ),
@@ -52,10 +66,14 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
         child: Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withOpacity(0.2),
             shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white.withOpacity(0.9),
+              width: 1.5,
+            ),
           ),
-          child: const Icon(Icons.arrow_back_ios_new, color: kPrimaryColor),
+          child: Icon(Icons.arrow_back_ios_new, color: Colors.black),
         ),
       ),
     );
@@ -65,111 +83,65 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
     return Container(
       height: 260,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            kPrimaryColor,
-            kPrimaryColor.withOpacity(0.8),
-            kSecondaryColor.withOpacity(0.9),
+        color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 90, 24, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              _currentNote?.title ?? '',
+              style: GoogleFonts.poppins(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: kTextColor,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _buildMoodChip(),
+                const SizedBox(width: 12),
+                _buildInfoChip(
+                  Icons.calendar_today,
+                  DateFormat('EEE, MMM d').format(
+                    DateTime.parse(_currentNote?.timestamp ?? ''),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _buildTimeChip(),
+              ],
+            ),
           ],
         ),
       ),
-      child: Stack(
+    );
+  }
+
+  Widget _buildTimeChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
         children: [
-          // Decorative wave pattern
-          Positioned.fill(
-            child: CustomPaint(
-              painter: WavePatternPainter(),
-            ),
-          ),
-          // Glass effect circle
-          Positioned(
-            right: -30,
-            top: 30,
-            child: Container(
-              width: 180,
-              height: 180,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    Colors.white.withOpacity(0.2),
-                    Colors.white.withOpacity(0.05),
-                  ],
-                ),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 90, 24, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  widget.note.title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withOpacity(0.1),
-                        offset: const Offset(0, 2),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    _buildMoodChip(),
-                    const SizedBox(width: 12),
-                    _buildInfoChip(
-                      Icons.calendar_today,
-                      DateFormat('EEE, MMM d').format(
-                        DateTime.parse(widget.note.timestamp),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.timer_outlined,
-                              size: 16, color: Colors.white),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${widget.note.content.split(' ').length ~/ 200 + 1} min',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+          Icon(Icons.timer_outlined, size: 16, color: kTextColor),
+          const SizedBox(width: 4),
+          Text(
+            '${_currentNote!.content.split(' ').length ~/ 200 + 1} min',
+            style: GoogleFonts.poppins(
+              color: kTextColor,
+              fontSize: 14,
             ),
           ),
         ],
@@ -181,23 +153,24 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.1),
+        color: Colors.white.withOpacity(0.3),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
+          color: Colors.white.withOpacity(0.4),
+          width: 1.5,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: Colors.white),
+          Icon(icon, size: 16, color: kTextColor),
           const SizedBox(width: 6),
           Text(
             label,
             style: GoogleFonts.poppins(
-              color: Colors.white,
+              color: kTextColor,
               fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -206,22 +179,31 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
   }
 
   Widget _buildMoodChip() {
+    Color moodColor = Colors.white.withOpacity(0.4);
+    Color textColor = Colors.black;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withOpacity(0.3),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: moodColor,
+          width: 1.5,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedEmoji(_getMoodAnimatedEmoji(widget.note.mood), size: 20),
+          AnimatedEmoji(_getMoodAnimatedEmoji(_currentNote?.mood ?? ''),
+              size: 20),
           const SizedBox(width: 6),
           Text(
-            widget.note.mood,
+            _currentNote?.mood ?? '',
             style: GoogleFonts.poppins(
-              color: Colors.white,
+              color: textColor,
               fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -230,44 +212,115 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
   }
 
   Widget _buildContentSection() {
-    if (widget.note.content.isEmpty) {
+    if (_currentNote?.content.isEmpty ?? true) {
       return const SizedBox.shrink();
     }
 
     return Container(
       margin: const EdgeInsets.all(24),
-      child: RichText(
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: widget.note.content.isNotEmpty
-                  ? widget.note.content.substring(0, 1)
-                  : '',
-              style: GoogleFonts.poppins(
-                fontSize: 56,
-                height: 1.2,
-                color: kPrimaryColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextSpan(
-              text: widget.note.content.length > 1
-                  ? widget.note.content.substring(1)
-                  : '',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                height: 1.8,
-                color: kTextColor.withOpacity(0.8),
-              ),
-            ),
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color.fromARGB(255, 76, 186, 255).withOpacity(0.15),
           ],
         ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Decorative top element
+          Center(
+            child: Container(
+              width: 80,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Note content
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: _currentNote?.content.isNotEmpty ?? false
+                      ? _currentNote?.content.substring(0, 1)
+                      : '',
+                  style: GoogleFonts.comicNeue(
+                    fontSize: 72,
+                    height: 0.8,
+                    color: Color.fromARGB(255, 76, 186, 255),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: (_currentNote?.content.length ?? 0) > 1
+                      ? _currentNote?.content.substring(1)
+                      : '',
+                  style: GoogleFonts.quicksand(
+                    fontSize: 18,
+                    height: 1.8,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Decorative bottom elements
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  size: 16,
+                  color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.4),
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  width: 40,
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+                Icon(
+                  Icons.auto_awesome,
+                  size: 16,
+                  color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.4),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildImageGrid() {
-    final int imageCount = widget.note.imagePaths?.length ?? 0;
+    final int imageCount = _currentNote?.imagePaths?.length ?? 0;
     final int displayCount = imageCount > 3 ? 3 : imageCount;
 
     return Container(
@@ -303,8 +356,8 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
                                 image: DecorationImage(
-                                  image: FileImage(
-                                      File(widget.note.imagePaths![index])),
+                                  image: FileImage(File(
+                                      _currentNote?.imagePaths![index] ?? '')),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -346,24 +399,53 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          FloatingActionButton.small(
-            heroTag: 'share',
-            onPressed: () {
-              // Implement share functionality
-            },
-            backgroundColor: kSecondaryColor,
-            child: const Icon(Icons.share_outlined, color: Colors.white),
+          Container(
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.7),
+                width: 1.5,
+              ),
+            ),
+            child: FloatingActionButton.small(
+              heroTag: 'share',
+              onPressed: () {
+                // Implement share functionality
+              },
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: Icon(
+                Icons.share_outlined,
+                color: Colors.black,
+              ),
+            ),
           ),
-          FloatingActionButton.extended(
-            heroTag: 'edit',
-            onPressed: () => _handleEdit(),
-            backgroundColor: kPrimaryColor,
-            icon: const Icon(Icons.edit_outlined),
-            elevation: 4,
-            label: Text(
-              'Edit Note',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w500,
+          Container(
+            decoration: BoxDecoration(
+              color: kPastelLavender.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.6),
+                width: 1.5,
+              ),
+            ),
+            child: FloatingActionButton.extended(
+              heroTag: 'edit',
+              onPressed: () => _handleEdit(),
+              backgroundColor:
+                  Color.fromARGB(255, 76, 186, 255).withOpacity(0.2),
+              elevation: 0,
+              icon: Icon(
+                Icons.edit_outlined,
+                color: Colors.black,
+              ),
+              label: Text(
+                'Edit Note',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
               ),
             ),
           ),
@@ -387,13 +469,13 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
           ),
           body: PageView.builder(
             controller: PageController(initialPage: initialIndex),
-            itemCount: widget.note.imagePaths?.length ?? 0,
+            itemCount: _currentNote?.imagePaths?.length ?? 0,
             itemBuilder: (context, index) {
               return Center(
                 child: Hero(
                   tag: 'image_$index',
                   child: Image.file(
-                    File(widget.note.imagePaths![index]),
+                    File(_currentNote?.imagePaths![index] ?? ''),
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -405,17 +487,23 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
     );
   }
 
-  void _handleEdit() {
-    Navigator.push(
+  void _handleEdit() async {
+    final updatedNote = await Navigator.push<Note>(
       context,
       MaterialPageRoute(
         builder: (context) => NotePage(
-          note: widget.note,
-          selectedMood: widget.note.mood,
-          userId: widget.userId, // Pass userId
+          note: _currentNote,
+          selectedMood: _currentNote?.mood ?? '',
+          userId: widget.userId,
         ),
       ),
     );
+
+    if (updatedNote != null) {
+      setState(() {
+        _currentNote = updatedNote;
+      });
+    }
   }
 
   AnimatedEmojiData _getMoodAnimatedEmoji(String mood) {
@@ -434,117 +522,4 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
         return AnimatedEmojis.smile;
     }
   }
-}
-
-class ModernPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    final path = Path();
-    final double spacing = size.width / 8;
-
-    for (int i = 0; i < 8; i++) {
-      path.moveTo(spacing * i, 0);
-      path.quadraticBezierTo(
-        spacing * i + spacing / 2,
-        size.height / 2,
-        spacing * i,
-        size.height,
-      );
-    }
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
-
-class SmoothPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..shader = LinearGradient(
-        colors: [
-          Colors.white.withOpacity(0.1),
-          Colors.white.withOpacity(0.05),
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    final path = Path();
-    const waves = 3;
-    final waveHeight = size.height / 8;
-
-    for (var i = 0; i < waves; i++) {
-      path.moveTo(0, size.height * (0.2 + 0.3 * i));
-
-      var controlPoint1 =
-          Offset(size.width * 0.25, size.height * (0.2 + 0.3 * i) + waveHeight);
-      var controlPoint2 =
-          Offset(size.width * 0.75, size.height * (0.2 + 0.3 * i) - waveHeight);
-      var endPoint = Offset(size.width, size.height * (0.2 + 0.3 * i));
-
-      path.cubicTo(
-        controlPoint1.dx,
-        controlPoint1.dy,
-        controlPoint2.dx,
-        controlPoint2.dy,
-        endPoint.dx,
-        endPoint.dy,
-      );
-    }
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
-
-class WavePatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..shader = LinearGradient(
-        colors: [
-          Colors.white.withOpacity(0.15),
-          Colors.white.withOpacity(0.05),
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    final path = Path();
-    final waveCount = 3;
-    final waveHeight = size.height / 6;
-    final waveWidth = size.width / waveCount;
-
-    path.moveTo(0, size.height * 0.5);
-
-    for (var i = 0; i <= waveCount; i++) {
-      path.quadraticBezierTo(
-        waveWidth * (i + 0.5),
-        size.height * 0.5 + (i.isEven ? waveHeight : -waveHeight),
-        waveWidth * (i + 1),
-        size.height * 0.5,
-      );
-    }
-
-    path.lineTo(size.width, 0);
-    path.lineTo(0, 0);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

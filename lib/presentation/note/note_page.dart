@@ -82,251 +82,224 @@ class _NotePageState extends State<NotePage> {
       await _dbHelper.updateNote(note);
     }
 
-    Navigator.pop(context, true);
+    Navigator.pop(context, note); // Return the updated note
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: _buildNoteContent(),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          _buildTopBar(),
+          Expanded(
+            child: _buildEditingArea(),
+          ),
+        ],
       ),
-      floatingActionButton: _buildSaveButton(),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildTopBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 16,
+        bottom: 16,
+        left: 16,
+        right: 16,
+      ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [kPrimaryColor, kSecondaryColor],
+        color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.6),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: kPrimaryColor.withOpacity(0.2),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-          ),
-        ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-              Text(
-                '$_characterCount characters',
-                style: GoogleFonts.poppins(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          TextField(
-            controller: _titleController,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Title',
-              border: InputBorder.none,
-              hintStyle: GoogleFonts.poppins(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-              counterText: '', // This hides the character counter
-            ),
-            maxLines: 1,
-            maxLength: 100,
-            onChanged: (value) => setState(() => _isEdited = true),
-          ),
-          Row(
-            children: [
-              Icon(Icons.access_time,
-                  size: 16, color: Colors.white.withOpacity(0.9)),
-              const SizedBox(width: 8),
-              Text(
-                DateTime.now().toString().substring(0, 16),
-                style: GoogleFonts.poppins(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    AnimatedEmoji(_getMoodAnimatedEmoji(_currentMood),
-                        size: 20),
-                    const SizedBox(width: 4),
-                    Text(
-                      _currentMood,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoteContent() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          if (_selectedImages.isNotEmpty) _buildImagePreview(),
+          _buildBackButton(),
+          const SizedBox(width: 16),
           Expanded(
             child: TextField(
-              controller: _contentController,
+              controller: _titleController,
               style: GoogleFonts.poppins(
-                fontSize: 16,
-                height: 1.5,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
                 color: kTextColor,
               ),
-              maxLines: null,
               decoration: InputDecoration(
-                hintText: 'Write your thoughts...',
+                hintText: 'Note Title',
                 border: InputBorder.none,
                 hintStyle: GoogleFonts.poppins(
-                  color: Colors.grey.withOpacity(0.7),
-                  fontSize: 16,
-                ),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.attach_file),
-                  onPressed: _pickImage,
-                  color: kPrimaryColor.withOpacity(0.5),
+                  color: kTextColor.withOpacity(0.6),
                 ),
               ),
               onChanged: (value) => setState(() => _isEdited = true),
             ),
           ),
+          _buildMoodIndicator(),
         ],
       ),
     );
   }
 
-  Widget _buildImagePreview() {
-    return Container(
-      height: 100,
-      margin: const EdgeInsets.only(bottom: 16),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _selectedImages.length,
-        itemBuilder: (context, index) => _buildImageThumbnail(index),
+  Widget _buildBackButton() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.3),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white.withOpacity(0.5),
+            width: 1,
+          ),
+        ),
+        child: Icon(Icons.arrow_back, color: kTextColor, size: 20),
       ),
     );
   }
 
-  Widget _buildImageThumbnail(int index) {
-    return Stack(
-      children: [
-        Container(
-          width: 100,
-          margin: const EdgeInsets.only(right: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            image: DecorationImage(
-              image: FileImage(File(_selectedImages[index])),
-              fit: BoxFit.cover,
+  Widget _buildMoodIndicator() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.5),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedEmoji(_getMoodAnimatedEmoji(_currentMood), size: 18),
+          SizedBox(width: 4),
+          Text(
+            _currentMood,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: kTextColor,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ),
-        Positioned(
-          top: 4,
-          right: 12,
-          child: GestureDetector(
-            onTap: () => setState(() {
-              _selectedImages.removeAt(index);
-              _isEdited = true;
-            }),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.close, color: Colors.white, size: 16),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildSaveButton() {
-    return AnimatedOpacity(
-      opacity: _isEdited ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 200),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 32),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            FloatingActionButton.small(
-              heroTag: 'discard',
-              onPressed: () => Navigator.pop(context),
-              backgroundColor: kAccentColor,
-              child: const Icon(Icons.close, color: Colors.white),
-            ),
-            FloatingActionButton.extended(
-              heroTag: 'save',
-              onPressed: _saveNote,
-              backgroundColor: kPrimaryColor,
-              elevation: 4,
-              icon: const Icon(Icons.save_outlined),
-              label: Text(
-                'Save Note',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w500,
+  Widget _buildEditingArea() {
+    return Container(
+      margin: EdgeInsets.all(16),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.1),
+            blurRadius: 20,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildToolbar(),
+          Expanded(
+            child: TextField(
+              controller: _contentController,
+              style: GoogleFonts.quicksand(
+                fontSize: 16,
+                height: 1.8,
+                color: Colors.black87,
+              ),
+              maxLines: null,
+              decoration: InputDecoration(
+                hintText: 'Start writing here...',
+                border: InputBorder.none,
+                hintStyle: GoogleFonts.quicksand(
+                  color: Colors.black38,
                 ),
               ),
+              onChanged: (value) => setState(() => _isEdited = true),
             ),
-          ],
+          ),
+          if (_selectedImages.isNotEmpty) _buildImagePreview(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToolbar() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      margin: EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Color.fromARGB(255, 76, 186, 255).withOpacity(0.2),
+          ),
         ),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(Icons.image_outlined),
+            onPressed: _pickImage,
+            color: Color.fromARGB(255, 76, 186, 255),
+          ),
+          const Spacer(),
+          Text(
+            '$_characterCount characters',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: Colors.black54,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton.icon(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(Icons.close),
+            label: Text('Discard'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: _isEdited ? _saveNote : null,
+            icon: Icon(Icons.check),
+            label: Text('Save'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color.fromARGB(255, 76, 186, 255),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -371,6 +344,27 @@ class _NotePageState extends State<NotePage> {
         ),
       );
     }
+  }
+
+  Widget _buildImagePreview() {
+    return Container(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _selectedImages.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: EdgeInsets.only(right: 10),
+            child: Image.file(
+              File(_selectedImages[index]),
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
