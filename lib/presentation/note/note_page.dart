@@ -11,13 +11,13 @@ import 'package:diarykuh/utils/color_utils.dart';
 class NotePage extends StatefulWidget {
   final Note? note;
   final String selectedMood;
-  final String userId; // Add userId parameter
+  final String userId;
 
   const NotePage({
     Key? key,
     this.note,
     required this.selectedMood,
-    required this.userId, // Add required userId
+    required this.userId,
   }) : super(key: key);
 
   @override
@@ -65,24 +65,47 @@ class _NotePageState extends State<NotePage> {
   }
 
   Future<void> _saveNote() async {
-    final note = Note(
-      id: widget.note?.id,
-      userId: widget.userId, // Use passed userId
-      title: _titleController.text.isEmpty ? 'Untitled' : _titleController.text,
-      content: _contentController.text,
-      mood: _currentMood,
-      timestamp: DateTime.now().toString(),
-      voicePath: widget.note?.voicePath,
-      imagePaths: _selectedImages,
-    );
+    try {
+      if (!_isEdited) {
+        Navigator.of(context)
+            .pop(widget.note); // Return existing note if not edited
+        return;
+      }
 
-    if (widget.note == null) {
-      await _dbHelper.insertNote(note);
-    } else {
-      await _dbHelper.updateNote(note);
+      final note = Note(
+        id: widget.note?.id,
+        userId: widget.userId,
+        title:
+            _titleController.text.isEmpty ? 'Untitled' : _titleController.text,
+        content: _contentController.text,
+        mood: _currentMood,
+        timestamp: DateTime.now().toString(),
+        voicePath: widget.note?.voicePath,
+        imagePaths: _selectedImages,
+      );
+
+      if (widget.note == null) {
+        final id = await _dbHelper.insertNote(note);
+        // Create new note with the returned id
+        final savedNote = note.copyWith(id: id);
+        print('New note inserted with id: $id');
+        if (mounted) Navigator.of(context).pop(savedNote);
+      } else {
+        if (note.id == null) {
+          throw Exception('Cannot update note: ID is null');
+        }
+        final result = await _dbHelper.updateNote(note);
+        print('Note updated with result: $result');
+        if (mounted) Navigator.of(context).pop(note);
+      }
+    } catch (e) {
+      print('Error saving note: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save note: $e')),
+        );
+      }
     }
-
-    Navigator.pop(context, note); // Return the updated note
   }
 
   @override
@@ -331,7 +354,7 @@ class _NotePageState extends State<NotePage> {
             timestamp: note.timestamp,
             voicePath: note.voicePath,
             mood: note.mood,
-            userId: widget.userId, // Add userId parameter
+            userId: widget.userId,
           ),
         ),
       );

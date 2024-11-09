@@ -473,11 +473,16 @@ class _HomePageState extends State<HomePage>
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => NotePage(
-                          selectedMood: selectedMood, userId: currentUserId)),
+                    builder: (context) => NotePage(
+                      selectedMood: selectedMood,
+                      userId: currentUserId,
+                    ),
+                  ),
                 );
-                if (result == true) {
-                  _loadNotes();
+                // Check if a note was returned and refresh the list
+                if (result is Note) {
+                  await _loadNotes(); // Refresh notes list
+                  setState(() {}); // Trigger rebuild
                 }
               }),
               _buildActionButton(

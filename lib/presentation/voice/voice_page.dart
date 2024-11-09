@@ -12,7 +12,7 @@ class VoicePage extends StatefulWidget {
   final String timestamp;
   final String? voicePath;
   final String mood;
-  final String userId; // Add userId parameter
+  final String userId;
 
   const VoicePage({
     Key? key,
@@ -20,7 +20,7 @@ class VoicePage extends StatefulWidget {
     required this.timestamp,
     required this.voicePath,
     required this.mood,
-    required this.userId, // Make userId required
+    required this.userId,
   }) : super(key: key);
 
   @override
@@ -154,12 +154,10 @@ class _VoicePageState extends State<VoicePage> with TickerProviderStateMixin {
       backgroundColor: kBackgroundColor,
       body: Stack(
         children: [
-          // Background Pattern
           CustomPaint(
             painter: BackgroundPatternPainter(),
             size: Size.infinite,
           ),
-          // Main Content
           SafeArea(
             child: Column(
               children: [
@@ -200,7 +198,6 @@ class _VoicePageState extends State<VoicePage> with TickerProviderStateMixin {
     );
   }
 
-  // Update header to use mood emoji directly
   Widget _buildModernHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -657,37 +654,34 @@ class BackgroundPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = kPrimaryColor.withOpacity(0.03)
+      ..color =
+          kPrimaryColor.withOpacity(0.05) // Lighter opacity for subtle pattern
       ..style = PaintingStyle.fill;
 
-    // Draw gradient background
     final gradientRect = Rect.fromLTWH(0, 0, size.width, size.height);
     final gradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
         kBackgroundColor,
-        kBackgroundColor.withOpacity(0.8),
+        Color(0xFFEDE9FF), // Slightly darker than background
       ],
     );
 
     final gradientPaint = Paint()..shader = gradient.createShader(gradientRect);
     canvas.drawRect(gradientRect, gradientPaint);
 
-    // Draw pattern
     for (var i = 0; i < 3; i++) {
       for (var j = 0; j < 5; j++) {
         final xOffset = size.width * 0.2 * i;
         final yOffset = size.height * 0.2 * j;
 
-        // Draw circles
         canvas.drawCircle(
           Offset(xOffset, yOffset),
           30,
           paint,
         );
 
-        // Draw rounded rectangles
         canvas.drawRRect(
           RRect.fromRectAndRadius(
             Rect.fromCenter(

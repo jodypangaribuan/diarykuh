@@ -89,15 +89,17 @@ class DatabaseHelper {
   }
 
   Future<int> updateNote(Note note) async {
-    if (note.userId.isEmpty) {
-      throw Exception('User ID cannot be empty');
-    }
     final db = await database;
+    if (note.id == null) {
+      throw Exception('Cannot update note without an ID');
+    }
+
     return await db.update(
       'notes',
       note.toMap(),
-      where: 'id = ? AND user_id = ?',
-      whereArgs: [note.id, note.userId],
+      where: 'id = ?',
+      whereArgs: [note.id],
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 

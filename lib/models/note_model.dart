@@ -1,5 +1,5 @@
 class Note {
-  final int? id;
+  final int? id; // Make id final again, we'll handle updates differently
   final String userId; // Add this field
   final String title;
   final String content;
@@ -20,6 +20,30 @@ class Note {
     this.imagePath,
     this.imagePaths = const [],
   });
+
+  Note copyWith({
+    int? id,
+    String? userId,
+    String? title,
+    String? content,
+    String? mood,
+    String? timestamp,
+    String? voicePath,
+    String? imagePath,
+    List<String>? imagePaths,
+  }) {
+    return Note(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      mood: mood ?? this.mood,
+      timestamp: timestamp ?? this.timestamp,
+      voicePath: voicePath ?? this.voicePath,
+      imagePath: imagePath ?? this.imagePath,
+      imagePaths: imagePaths ?? this.imagePaths,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
