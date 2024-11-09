@@ -2,67 +2,57 @@
 
 ## Description
 
-DiaryKuh is a comprehensive personal diary application that allows users to document their thoughts, memories, and experiences through text notes, photos, and voice recordings. The app provides a secure and intuitive platform for users to maintain their daily journals with multiple media formats.
+DiaryKuh is a digital diary application that enables users to record their daily experiences through text notes, photos, and voice recordings.
 
-## Features
+## Key Features
 
-- 📝 Text Notes Creation
+- 📝 Text Notes
 - 📸 Photo Diary
-- 🎤 Voice Notes Recording
-- 🔐 Secure Authentication
-- 🌓 Dark/Light Theme Support
-- 💾 Offline Storage Support
-- 🔄 Auto-save Functionality
+- 🎤 Voice Notes
+- 🔐 Authentication
+- 🌓 Dark/Light Theme
+- 💾 Offline Storage
 
 ## Project Structure
 
+```bash
 lib/
-│
-├── common/ # Reusable components and widgets
-│ ├── custom_form_button.dart # Custom button widget for forms
-│ ├── custom_input_field.dart # Custom input field widget for forms
-│ ├── page_header.dart # Common header widget for pages
-│ └── page_heading.dart # Common heading widget for pages
-│
-├── data/ # Data layer containing data sources
-│ └── database_helper.dart # SQLite database helper for local storage
-│
-├── models/ # Data models or entities
-│ ├── note_model.dart # Model class for diary notes
-│ └── user_model.dart # Model class for user data
-│
-├── presentation/ # UI layer containing all app screens
-│ ├── auth/ # Authentication-related screens
-│ │ ├── forget_password_page.dart # Password recovery screen
-│ │ ├── login_page.dart # Login screen
-│ │ └── signup_page.dart # Registration screen
-│ │
-│ ├── home/ # Home screen-related files
-│ │ └── home_page.dart # Main home screen of the app
-│ │
-│ ├── note/ # Note management screens
-│ │ ├── note_detail_page.dart # Note details/viewing screen
-│ │ └── note_page.dart # Note creation/editing screen
-│ │
-│ ├── photo/ # Photo diary-related screens
-│ │ ├── photo_detail_page.dart # Photo viewing screen
-│ │ └── photo_page.dart # Photo capture/upload screen
-│ │
-│ ├── splash/ # Splash screen
-│ │ └── splash_page.dart # Initial loading screen
-│ │
-│ └── voice/ # Voice note-related screens
-│ └── voice_page.dart # Voice recording/playback screen
-│
-├── routes/ # Navigation and routing
-│ └── routes.dart # Route definitions and navigation logic
-│
-├── utils/ # Utility classes and helpers
-│ ├── color_utils.dart # Color constants and theme colors
-│ ├── theme_manager.dart # Theme management utilities
-│ └── firebase_options.dart # Firebase configuration options
-│
-└── main.dart # Application entry point
+├── common/
+│   ├── custom_form_button.dart
+│   ├── custom_input_field.dart
+│   ├── page_header.dart
+│   └── page_heading.dart
+├── data/
+│   └── database_helper.dart
+├── models/
+│   ├── note_model.dart
+│   └── user_model.dart
+├── presentation/
+│   ├── auth/
+│   │   ├── forget_password_page.dart
+│   │   ├── login_page.dart
+│   │   └── signup_page.dart
+│   ├── home/
+│   │   └── home_page.dart
+│   ├── note/
+│   │   ├── note_detail_page.dart
+│   │   └── note_page.dart
+│   ├── photo/
+│   │   ├── photo_detail_page.dart
+│   │   └── photo_page.dart
+│   ├── splash/
+│   │   └── splash_page.dart
+│   └── voice/
+│       └── voice_page.dart
+├── routes/
+│   └── routes.dart
+├── utils/
+│   ├── color_utils.dart
+│   ├── theme_manager.dart
+│   └── firebase_options.dart
+└── main.dart
+
+```
 
 ## Technical Specifications
 
