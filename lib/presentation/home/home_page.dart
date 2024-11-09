@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage>
   final List<String> moods = ['Happy', 'Sad', 'Excited', 'Tired', 'Calm'];
   final DatabaseHelper _dbHelper = DatabaseHelper();
   List<Note> _notes = [];
-  final _audioRecorder = AudioRecorder();
+  var _audioRecorder = AudioRecorder();
   bool _isRecording = false;
   String? _recordingPath;
   final Map<String, Color> categoryColors = {
@@ -51,10 +51,32 @@ class _HomePageState extends State<HomePage>
   String get currentUserId =>
       prefs.getString('currentUserId') ?? 'default_user';
 
+  AnimationController? _recordingAnimationController;
+  Animation<double>? _recordingAnimation;
+  bool _isPressing = false;
+  bool _isProcessing = false;
+  DateTime? _lastRecordingTime;
+  bool _isStopping = false; // Add this line
+
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
     _initializeApp();
+  }
+
+  void _initializeAnimations() {
+    _recordingAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _recordingAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(
+        parent: _recordingAnimationController!,
+        curve: Curves.easeInOut,
+      ),
+    );
+    _recordingAnimationController!.repeat(reverse: true);
   }
 
   Future<void> _initializeApp() async {
@@ -113,7 +135,11 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _startVoiceNote() async {
+    if (_isProcessing || _isRecording || _isStopping) return;
+
     try {
+      setState(() => _isProcessing = true);
+
       if (await Permission.microphone.request().isGranted) {
         final directory = await getApplicationDocumentsDirectory();
         _recordingPath =
@@ -126,33 +152,91 @@ class _HomePageState extends State<HomePage>
         );
 
         await _audioRecorder.start(config, path: _recordingPath!);
-        setState(() => _isRecording = true);
+
+        setState(() {
+          _isRecording = true;
+          _lastRecordingTime = DateTime.now();
+        });
       }
     } catch (e) {
       print('Error recording: $e');
+      _showErrorSnackbar('Failed to start recording');
+      setState(() {
+        _isRecording = false;
+        _recordingPath = null;
+      });
+    } finally {
+      setState(() => _isProcessing = false);
     }
   }
 
   Future<void> _stopVoiceNote() async {
+    if (!_isRecording || _isProcessing || _isStopping) return;
+
     try {
+      setState(() {
+        _isStopping = true;
+        _isProcessing = true;
+      });
+
+      // Force stop after 3 seconds if normal stop fails
+      Future.delayed(const Duration(seconds: 3), () {
+        if (_isStopping) {
+          _forceStopRecording();
+        }
+      });
+
       await _audioRecorder.stop();
 
-      final note = Note(
-        userId: currentUserId,
-        title: 'Voice Note',
-        content: '',
-        mood: selectedMood,
-        timestamp: DateTime.now().toString(),
-        voicePath: _recordingPath,
-        imagePath: null,
-      );
+      if (_recordingPath != null) {
+        final note = Note(
+          userId: currentUserId,
+          title: 'Suaramu',
+          content: 'Suaramu',
+          mood: selectedMood,
+          timestamp: DateTime.now().toString(),
+          voicePath: _recordingPath,
+          imagePath: null,
+        );
 
-      await _dbHelper.insertNote(note);
-      _loadNotes();
-      setState(() => _isRecording = false);
+        await _dbHelper.insertNote(note);
+        await _loadNotes();
+      }
     } catch (e) {
       print('Error stopping recording: $e');
+      _showErrorSnackbar('Failed to save recording');
+      _forceStopRecording();
+    } finally {
+      setState(() {
+        _isRecording = false;
+        _isProcessing = false;
+        _isStopping = false;
+      });
     }
+  }
+
+  void _forceStopRecording() {
+    _audioRecorder.dispose();
+    _audioRecorder = AudioRecorder(); // Create new instance
+    setState(() {
+      _isRecording = false;
+      _isProcessing = false;
+      _isStopping = false;
+      _recordingPath = null;
+    });
+    _showErrorSnackbar('Recording was force stopped');
+  }
+
+  void _showErrorSnackbar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> _onRefresh() async {
@@ -318,16 +402,7 @@ class _HomePageState extends State<HomePage>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            kSecondaryColor.withOpacity(0.7),
-            const Color(0xFFFFB7B7).withOpacity(0.6),
-            const Color.fromARGB(255, 76, 186, 255).withOpacity(0.5),
-          ],
-          stops: const [0.2, 0.5, 0.8],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: kSecondaryColor.withOpacity(0.7),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -552,6 +627,76 @@ class _HomePageState extends State<HomePage>
 
   Widget _buildActionButton(
       String label, IconData icon, Color color, VoidCallback onTap) {
+    if (label == 'Ngomong Aja!') {
+      return GestureDetector(
+        onTapDown: (_) async {
+          setState(() => _isPressing = true);
+          _recordingAnimationController!.forward();
+          await _startVoiceNote();
+        },
+        onTapUp: (_) async {
+          setState(() => _isPressing = false);
+          _recordingAnimationController!.reset();
+          await _stopVoiceNote();
+        },
+        onTapCancel: () async {
+          setState(() => _isPressing = false);
+          _recordingAnimationController!.reset();
+          await _stopVoiceNote();
+        },
+        child: AnimatedBuilder(
+          animation: _recordingAnimation!,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _isRecording ? _recordingAnimation!.value : 1.0,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.27,
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: _isRecording
+                      ? color.withOpacity(0.3)
+                      : color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15),
+                  border:
+                      _isRecording ? Border.all(color: color, width: 2) : null,
+                  boxShadow: _isRecording
+                      ? [
+                          BoxShadow(
+                            color: color.withOpacity(0.3),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          )
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _isRecording ? Icons.stop : Icons.mic,
+                      color: color,
+                      size: 28,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _isRecording ? 'Lgi ngerekam...' : label,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        color: color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -857,6 +1002,10 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
+    if (_isRecording || _isStopping) {
+      _forceStopRecording();
+    }
+    _recordingAnimationController?.dispose();
     _audioRecorder.dispose();
     super.dispose();
   }

@@ -61,7 +61,7 @@ class _PhotoPageState extends State<PhotoPage> {
 
     final note = Note(
       userId: widget.userId,
-      title: 'Photo Album',
+      title: 'Fotolu',
       content: imagePaths.join('|'),
       mood: widget.selectedMood,
       timestamp: DateTime.now().toString(),

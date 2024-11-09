@@ -31,6 +31,19 @@ class DatabaseHelper {
     );
   }
 
+  Future<void> _createUsersTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS users(
+        uid TEXT PRIMARY KEY,
+        name TEXT,
+        email TEXT UNIQUE,
+        phone TEXT,
+        password TEXT,
+        imagePath TEXT
+      )
+    ''');
+  }
+
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS notes(
@@ -46,16 +59,7 @@ class DatabaseHelper {
       )
     ''');
 
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS users(
-        uid TEXT PRIMARY KEY,
-        name TEXT,
-        email TEXT UNIQUE,
-        phone TEXT,
-        password TEXT,
-        imagePath TEXT
-      )
-    ''');
+    await _createUsersTable(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -63,13 +67,12 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE notes ADD COLUMN imagePaths TEXT');
     }
     if (oldVersion < 3) {
-      // Add user_id column and set default value
       await db.execute('ALTER TABLE notes ADD COLUMN user_id TEXT');
       await db.execute('UPDATE notes SET user_id = "default_user"');
     }
     if (oldVersion < 4) {
-      // Add password column to users table
-      await db.execute('ALTER TABLE users ADD COLUMN password TEXT');
+      // First ensure users table exists, then add password column
+      await _createUsersTable(db);
     }
   }
 

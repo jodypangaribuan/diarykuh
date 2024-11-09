@@ -75,8 +75,9 @@ class _NotePageState extends State<NotePage> {
       final note = Note(
         id: widget.note?.id,
         userId: widget.userId,
-        title:
-            _titleController.text.isEmpty ? 'Untitled' : _titleController.text,
+        title: _titleController.text.isEmpty
+            ? 'Tidak Berjudul'
+            : _titleController.text,
         content: _contentController.text,
         mood: _currentMood,
         timestamp: DateTime.now().toString(),
@@ -152,7 +153,7 @@ class _NotePageState extends State<NotePage> {
                 color: kTextColor,
               ),
               decoration: InputDecoration(
-                hintText: 'Note Title',
+                hintText: 'Judul Curhatanmu',
                 border: InputBorder.none,
                 hintStyle: GoogleFonts.poppins(
                   color: kTextColor.withOpacity(0.6),
@@ -242,7 +243,7 @@ class _NotePageState extends State<NotePage> {
               ),
               maxLines: null,
               decoration: InputDecoration(
-                hintText: 'Start writing here...',
+                hintText: 'Mulai curhat disini...',
                 border: InputBorder.none,
                 hintStyle: GoogleFonts.quicksand(
                   color: Colors.black38,
@@ -273,7 +274,7 @@ class _NotePageState extends State<NotePage> {
           IconButton(
             icon: Icon(Icons.image_outlined),
             onPressed: _pickImage,
-            color: Color.fromARGB(255, 76, 186, 255),
+            color: Color.fromARGB(255, 0, 157, 255),
           ),
           const Spacer(),
           Text(
@@ -307,7 +308,7 @@ class _NotePageState extends State<NotePage> {
           TextButton.icon(
             onPressed: () => Navigator.pop(context),
             icon: Icon(Icons.close),
-            label: Text('Discard'),
+            label: Text('Batalkan'),
             style: TextButton.styleFrom(
               foregroundColor: Colors.grey[600],
             ),
@@ -315,7 +316,7 @@ class _NotePageState extends State<NotePage> {
           ElevatedButton.icon(
             onPressed: _isEdited ? _saveNote : null,
             icon: Icon(Icons.check),
-            label: Text('Save'),
+            label: Text('Simpan'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Color.fromARGB(255, 76, 186, 255),
               foregroundColor: Colors.white,

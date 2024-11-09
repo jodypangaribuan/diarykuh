@@ -329,7 +329,7 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Attached Images',
+            'Foto-foto Lu',
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -441,7 +441,7 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
                 color: Colors.black,
               ),
               label: Text(
-                'Edit Note',
+                'Ubah Curhatan!',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w500,
                   color: Colors.black,
