@@ -12,6 +12,8 @@ import '../../data/database_helper.dart';
 import '../../models/note_model.dart';
 import '../note/note_detail_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 const Color kPrimaryColor = Color.fromARGB(255, 119, 112, 248);
 const Color kSecondaryColor = Color.fromARGB(255, 154, 151, 255);
@@ -26,7 +28,8 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   bool isDarkMode = false;
   bool isLoggedIn = false;
   late SharedPreferences prefs;
@@ -122,12 +125,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _onRefresh() async {
-    // Reload data
+    // Show loading animation
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (context) => Center(
+        child: SpinKitPulsingGrid(
+          color: kPrimaryColor,
+          size: 50.0,
+        ),
+      ),
+    );
+
+    // Perform refresh
     await _loadPreferences();
     await _loadNotes();
-    setState(() {
-      // Update current date/time if needed
-    });
+
+    // Remove loading animation
+    Navigator.pop(context);
   }
 
   @override
@@ -135,10 +150,15 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.grey[900] : kBackgroundColor,
       body: SafeArea(
-        child: RefreshIndicator(
+        child: LiquidPullToRefresh(
           onRefresh: _onRefresh,
           color: kPrimaryColor,
           backgroundColor: isDarkMode ? Colors.grey[850] : Colors.white,
+          height: 100,
+          animSpeedFactor: 2,
+          showChildOpacityTransition: false,
+          springAnimationDurationInMilliseconds: 1000,
+          borderWidth: 2,
           child: SingleChildScrollView(
             physics:
                 const AlwaysScrollableScrollPhysics(), // Important for refresh to work
