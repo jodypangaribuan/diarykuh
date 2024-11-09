@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:diarykuh/presentation/photo/photo_detail_page.dart';
+import 'package:diarykuh/presentation/auth/login_page.dart';
 import 'package:diarykuh/presentation/photo/photo_page.dart';
 import 'package:diarykuh/presentation/voice/voice_page.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +48,9 @@ class _HomePageState extends State<HomePage>
     'Voice': kSecondaryColor,
   };
 
+  String get currentUserId =>
+      prefs.getString('currentUserId') ?? 'default_user';
+
   @override
   void initState() {
     super.initState();
@@ -71,7 +72,8 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _loadNotes() async {
-    final notes = await _dbHelper.getNotes();
+    final notes = await _dbHelper
+        .getNotes(currentUserId); // Gunakan user ID saat load notes
     setState(() {
       _notes = notes;
     });
@@ -117,6 +119,7 @@ class _HomePageState extends State<HomePage>
       await _audioRecorder.stop();
 
       final note = Note(
+        userId: currentUserId,
         title: 'Voice Note',
         content: '',
         mood: selectedMood,
@@ -149,6 +152,11 @@ class _HomePageState extends State<HomePage>
     await _loadNotes();
 
     Navigator.pop(context);
+  }
+
+  Future<void> _deleteNote(int noteId) async {
+    await _dbHelper.deleteNote(noteId, currentUserId);
+    _loadNotes();
   }
 
   @override
@@ -211,12 +219,53 @@ class _HomePageState extends State<HomePage>
           ),
           Row(
             children: [
+              _buildLogoutButton(),
+              const SizedBox(width: 8),
               _buildThemeToggle(),
             ],
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildLogoutButton() {
+    return GestureDetector(
+      onTap: _handleLogout,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isDarkMode ? Colors.grey[800] : Colors.grey[50],
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            if (!isDarkMode)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: Icon(
+          Icons.logout,
+          color: kAccentColor,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  void _handleLogout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
+    await prefs.remove('currentUserId');
+
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    }
   }
 
   Widget _buildThemeToggle() {
@@ -426,8 +475,8 @@ class _HomePageState extends State<HomePage>
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          NotePage(selectedMood: selectedMood)),
+                      builder: (context) => NotePage(
+                          selectedMood: selectedMood, userId: currentUserId)),
                 );
                 if (result == true) {
                   _loadNotes();
@@ -444,7 +493,10 @@ class _HomePageState extends State<HomePage>
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PhotoPage(selectedMood: selectedMood),
+                    builder: (context) => PhotoPage(
+                      selectedMood: selectedMood,
+                      userId: currentUserId,
+                    ),
                   ),
                 );
                 if (result == true) {
@@ -524,6 +576,7 @@ class _HomePageState extends State<HomePage>
                           timestamp: note.timestamp,
                           voicePath: note.voicePath,
                           mood: note.mood,
+                          userId: currentUserId, // Add userId
                         ),
                       ),
                     );
@@ -531,14 +584,17 @@ class _HomePageState extends State<HomePage>
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => NoteDetailPage(note: note),
+                        builder: (context) => NoteDetailPage(
+                          note: note,
+                          userId: currentUserId, // Add userId
+                        ),
                       ),
                     );
                     _loadNotes();
                   }
                 },
                 onDelete: () async {
-                  await _dbHelper.deleteNote(note.id!);
+                  await _deleteNote(note.id!);
                   _loadNotes();
                 },
               );

@@ -15,6 +15,7 @@ class VoicePage extends StatefulWidget {
   final String timestamp;
   final String? voicePath;
   final String mood;
+  final String userId; // Add userId parameter
 
   const VoicePage({
     Key? key,
@@ -22,6 +23,7 @@ class VoicePage extends StatefulWidget {
     required this.timestamp,
     required this.voicePath,
     required this.mood,
+    required this.userId, // Make userId required
   }) : super(key: key);
 
   @override

@@ -1,3 +1,4 @@
+import 'package:diarykuh/data/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:email_validator/email_validator.dart';
@@ -149,30 +150,21 @@ class _LoginPageState extends State<LoginPage> {
 
   void _handleLoginUser() async {
     if (_loginFormKey.currentState!.validate()) {
-      // Simulasi login
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
+      // Get user by email
+      final user = await DatabaseHelper().getUserByEmail(_emailController.text);
 
-      // Simulasi delay network
-      await Future.delayed(const Duration(seconds: 2));
+      if (user != null && user.password == _passwordController.text) {
+        // Save user ID and login state to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('currentUserId', user.uid);
 
-      // Simpan status login
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-
-      if (mounted) {
-        Navigator.of(context).pop(); // Tutup loading dialog
+        // Navigate to home
         Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
+            context, MaterialPageRoute(builder: (context) => HomePage()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid email or password')));
       }
     }
   }

@@ -16,9 +16,14 @@ const Color kTextColor = Color(0xFF2D3142);
 class NotePage extends StatefulWidget {
   final Note? note;
   final String selectedMood;
+  final String userId; // Add userId parameter
 
-  const NotePage({Key? key, this.note, required this.selectedMood})
-      : super(key: key);
+  const NotePage({
+    Key? key,
+    this.note,
+    required this.selectedMood,
+    required this.userId, // Add required userId
+  }) : super(key: key);
 
   @override
   _NotePageState createState() => _NotePageState();
@@ -67,6 +72,7 @@ class _NotePageState extends State<NotePage> {
   Future<void> _saveNote() async {
     final note = Note(
       id: widget.note?.id,
+      userId: widget.userId, // Use passed userId
       title: _titleController.text.isEmpty ? 'Untitled' : _titleController.text,
       content: _contentController.text,
       mood: _currentMood,
@@ -357,6 +363,7 @@ class _NotePageState extends State<NotePage> {
             timestamp: note.timestamp,
             voicePath: note.voicePath,
             mood: note.mood,
+            userId: widget.userId, // Add userId parameter
           ),
         ),
       );
@@ -364,8 +371,8 @@ class _NotePageState extends State<NotePage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              NotePage(note: note, selectedMood: selectedMood),
+          builder: (context) => NotePage(
+              note: note, selectedMood: selectedMood, userId: widget.userId),
         ),
       );
     }

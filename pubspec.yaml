@@ -34,6 +34,9 @@ dependencies:
   # Untuk animation refersh
   liquid_pull_to_refresh: ^3.0.1
   flutter_spinkit: ^5.2.1
+  firebase_core: ^3.7.0
+  firebase_auth: ^5.3.2
+  cloud_firestore: ^5.4.5
 
 dev_dependencies:
   flutter_test:

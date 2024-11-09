@@ -1,5 +1,6 @@
 class Note {
   final int? id;
+  final String userId; // Add this field
   final String title;
   final String content;
   final String mood;
@@ -10,6 +11,7 @@ class Note {
 
   Note({
     this.id,
+    required this.userId, // Add this field
     required this.title,
     required this.content,
     required this.mood,
@@ -22,6 +24,7 @@ class Note {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'user_id': userId, // Add this field
       'title': title,
       'content': content,
       'mood': mood,
@@ -41,6 +44,7 @@ class Note {
 
     return Note(
       id: map['id'],
+      userId: map['user_id'] ?? 'default_user', // Add this field with default
       title: map['title'],
       content: map['content'],
       mood: map['mood'],

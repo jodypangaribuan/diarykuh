@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:diarykuh/data/database_helper.dart';
+import 'package:diarykuh/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -202,27 +204,32 @@ class _SignupPageState extends State<SignupPage> {
 
   void _handleSignupUser() async {
     if (_signupFormKey.currentState!.validate()) {
-      // Simulasi signup
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
+      // Check if email already exists
+      final existingUser =
+          await DatabaseHelper().getUserByEmail(_emailController.text);
+      if (existingUser != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email already registered')));
+        return;
+      }
+
+      String userId = DateTime.now().millisecondsSinceEpoch.toString();
+
+      final user = UserModel(
+        uid: userId,
+        name: _nameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+        password: _passwordController.text, // Add password
+        imagePath: _profileImage?.path,
       );
 
-      // Simulasi delay network
-      await Future.delayed(const Duration(seconds: 2));
+      await DatabaseHelper().insertUser(user);
 
+      // Don't save currentUserId on signup, only on login
       if (mounted) {
-        Navigator.of(context).pop(); // Tutup loading dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pendaftaran berhasil! Silakan login.'),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Registration successful! Please login.')));
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginPage()),

@@ -1,31 +1,36 @@
-import 'package:diarykuh/presentation/splash/splash_page.dart';
 import 'package:flutter/material.dart';
-import 'package:diarykuh/presentation/auth/login_page.dart';
-import 'package:diarykuh/presentation/auth/signup_page.dart';
-import 'package:diarykuh/presentation/home/home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../presentation/auth/login_page.dart';
+import '../presentation/splash/splash_page.dart';
+import '../presentation/home/home_page.dart';
 
 class Routes {
   static const String splash = '/';
   static const String login = '/login';
-  static const String signup = '/signup';
   static const String home = '/home';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case splash:
-        return MaterialPageRoute(builder: (_) => const SplashPage());
+        return MaterialPageRoute(builder: (_) => SplashPage());
       case login:
-        return MaterialPageRoute(builder: (_) => const LoginPage());
-      case signup:
-        return MaterialPageRoute(builder: (_) => const SignupPage());
+        return MaterialPageRoute(builder: (_) => LoginPage());
       case home:
-        return MaterialPageRoute(builder: (_) => const HomePage());
+        return MaterialPageRoute(builder: (_) => HomePage());
       default:
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('Route not found')),
+          builder: (_) => Scaffold(
+            body: Center(
+              child: Text('No route defined for ${settings.name}'),
+            ),
           ),
         );
     }
+  }
+
+  static Future<String> getInitialRoute() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    return isLoggedIn ? home : login;
   }
 }

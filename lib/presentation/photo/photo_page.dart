@@ -15,7 +15,13 @@ const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
 
 class PhotoPage extends StatefulWidget {
   final String selectedMood;
-  const PhotoPage({Key? key, required this.selectedMood}) : super(key: key);
+  final String userId;
+
+  const PhotoPage({
+    Key? key,
+    required this.selectedMood,
+    required this.userId,
+  }) : super(key: key);
 
   @override
   _PhotoPageState createState() => _PhotoPageState();
@@ -46,13 +52,11 @@ class _PhotoPageState extends State<PhotoPage> {
   Future<void> _savePhotos() async {
     if (_images.isEmpty) return;
 
-    // Create a directory for storing multiple photos
     final directory = await getApplicationDocumentsDirectory();
     final albumPath =
         '${directory.path}/album_${DateTime.now().millisecondsSinceEpoch}';
     await Directory(albumPath).create(recursive: true);
 
-    // Copy all images to the album directory and get their paths
     List<String> imagePaths = [];
     for (var i = 0; i < _images.length; i++) {
       final newPath = '$albumPath/photo_$i.jpg';
@@ -60,13 +64,13 @@ class _PhotoPageState extends State<PhotoPage> {
       imagePaths.add(newPath);
     }
 
-    // Save as a single note with all image paths
     final note = Note(
+      userId: widget.userId,
       title: 'Photo Album',
-      content: imagePaths.join('|'), // Store multiple paths separated by '|'
+      content: imagePaths.join('|'),
       mood: widget.selectedMood,
       timestamp: DateTime.now().toString(),
-      imagePath: imagePaths.first, // Store first image as thumbnail
+      imagePath: imagePaths.first,
       voicePath: null,
     );
 

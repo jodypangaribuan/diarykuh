@@ -12,11 +12,21 @@ const Color kAccentColor = Color(0xFFFF9E9E);
 const Color kBackgroundColor = Color.fromARGB(255, 233, 233, 239);
 const Color kTextColor = Color(0xFF2D3142);
 
-class NoteDetailPage extends StatelessWidget {
+class NoteDetailPage extends StatefulWidget {
   final Note note;
+  final String userId; // Add userId parameter
 
-  const NoteDetailPage({Key? key, required this.note}) : super(key: key);
+  const NoteDetailPage({
+    Key? key,
+    required this.note,
+    required this.userId, // Make userId required
+  }) : super(key: key);
 
+  @override
+  _NoteDetailPageState createState() => _NoteDetailPageState();
+}
+
+class _NoteDetailPageState extends State<NoteDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +40,7 @@ class NoteDetailPage extends StatelessWidget {
           children: [
             _buildHeaderSection(),
             _buildContentSection(),
-            if (note.imagePaths?.isNotEmpty ?? false) _buildImageGrid(),
+            if (widget.note.imagePaths?.isNotEmpty ?? false) _buildImageGrid(),
           ],
         ),
       ),
@@ -108,7 +118,7 @@ class NoteDetailPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
-                  note.title,
+                  widget.note.title,
                   style: GoogleFonts.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -132,7 +142,7 @@ class NoteDetailPage extends StatelessWidget {
                     _buildInfoChip(
                       Icons.calendar_today,
                       DateFormat('EEE, MMM d').format(
-                        DateTime.parse(note.timestamp),
+                        DateTime.parse(widget.note.timestamp),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -153,7 +163,7 @@ class NoteDetailPage extends StatelessWidget {
                               size: 16, color: Colors.white),
                           const SizedBox(width: 4),
                           Text(
-                            '${note.content.split(' ').length ~/ 200 + 1} min',
+                            '${widget.note.content.split(' ').length ~/ 200 + 1} min',
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 14,
@@ -210,10 +220,10 @@ class NoteDetailPage extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedEmoji(_getMoodAnimatedEmoji(note.mood), size: 20),
+          AnimatedEmoji(_getMoodAnimatedEmoji(widget.note.mood), size: 20),
           const SizedBox(width: 6),
           Text(
-            note.mood,
+            widget.note.mood,
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontSize: 14,
@@ -225,7 +235,7 @@ class NoteDetailPage extends StatelessWidget {
   }
 
   Widget _buildContentSection() {
-    if (note.content.isEmpty) {
+    if (widget.note.content.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -235,7 +245,9 @@ class NoteDetailPage extends StatelessWidget {
         text: TextSpan(
           children: [
             TextSpan(
-              text: note.content.isNotEmpty ? note.content.substring(0, 1) : '',
+              text: widget.note.content.isNotEmpty
+                  ? widget.note.content.substring(0, 1)
+                  : '',
               style: GoogleFonts.poppins(
                 fontSize: 56,
                 height: 1.2,
@@ -244,7 +256,9 @@ class NoteDetailPage extends StatelessWidget {
               ),
             ),
             TextSpan(
-              text: note.content.length > 1 ? note.content.substring(1) : '',
+              text: widget.note.content.length > 1
+                  ? widget.note.content.substring(1)
+                  : '',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 height: 1.8,
@@ -258,7 +272,7 @@ class NoteDetailPage extends StatelessWidget {
   }
 
   Widget _buildImageGrid() {
-    final int imageCount = note.imagePaths?.length ?? 0;
+    final int imageCount = widget.note.imagePaths?.length ?? 0;
     final int displayCount = imageCount > 3 ? 3 : imageCount;
 
     return Container(
@@ -294,8 +308,8 @@ class NoteDetailPage extends StatelessWidget {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
                                 image: DecorationImage(
-                                  image:
-                                      FileImage(File(note.imagePaths![index])),
+                                  image: FileImage(
+                                      File(widget.note.imagePaths![index])),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -347,7 +361,7 @@ class NoteDetailPage extends StatelessWidget {
           ),
           FloatingActionButton.extended(
             heroTag: 'edit',
-            onPressed: () => _editNote(context),
+            onPressed: () => _handleEdit(),
             backgroundColor: kPrimaryColor,
             icon: const Icon(Icons.edit_outlined),
             elevation: 4,
@@ -378,13 +392,13 @@ class NoteDetailPage extends StatelessWidget {
           ),
           body: PageView.builder(
             controller: PageController(initialPage: initialIndex),
-            itemCount: note.imagePaths?.length ?? 0,
+            itemCount: widget.note.imagePaths?.length ?? 0,
             itemBuilder: (context, index) {
               return Center(
                 child: Hero(
                   tag: 'image_$index',
                   child: Image.file(
-                    File(note.imagePaths![index]),
+                    File(widget.note.imagePaths![index]),
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -396,16 +410,17 @@ class NoteDetailPage extends StatelessWidget {
     );
   }
 
-  void _editNote(BuildContext context) async {
-    final result = await Navigator.push(
+  void _handleEdit() {
+    Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NotePage(note: note, selectedMood: note.mood),
+        builder: (context) => NotePage(
+          note: widget.note,
+          selectedMood: widget.note.mood,
+          userId: widget.userId, // Pass userId
+        ),
       ),
     );
-    if (result == true) {
-      Navigator.pop(context); // Return to HomePage after saving
-    }
   }
 
   AnimatedEmojiData _getMoodAnimatedEmoji(String mood) {
