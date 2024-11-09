@@ -58,9 +58,12 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _initializeApp() async {
-    prefs = await SharedPreferences.getInstance(); // Move this line up
+    // First initialize date formatting
     await initializeDateFormatting('id_ID', null);
-    await _loadCurrentUser(); // Load user first
+
+    // Then proceed with other initializations
+    prefs = await SharedPreferences.getInstance();
+    await _loadCurrentUser();
     await _loadPreferences();
     await _loadNotes();
   }
@@ -217,16 +220,16 @@ class _HomePageState extends State<HomePage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'DiaryKuh',
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                'DiaryKuh ;v',
+                style: GoogleFonts.yellowtail(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w500,
                   color: isDarkMode ? Colors.white : kTextColor,
                 ),
               ),
               Text(
                 DateFormat('EEEE, d MMMM', 'id_ID').format(DateTime.now()),
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.montserrat(
                   fontSize: 14,
                   color: isDarkMode ? Colors.white70 : Colors.grey[600],
                 ),
@@ -361,9 +364,9 @@ class _HomePageState extends State<HomePage>
               children: [
                 Text(
                   currentUser?.name != null
-                      ? 'Welcome back, ${currentUser!.name}!'
-                      : 'Welcome back!',
-                  style: GoogleFonts.poppins(
+                      ? 'Heyyyyooo, ${currentUser!.name}!'
+                      : 'Heyyyyooo',
+                  style: GoogleFonts.montserrat(
                     color: Colors.black,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -371,8 +374,8 @@ class _HomePageState extends State<HomePage>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'How are you feeling today?',
-                  style: GoogleFonts.poppins(
+                  'Pengen curhat apa hari ini? Spill aja semuanya~ 📝',
+                  style: GoogleFonts.montserrat(
                     color: Colors.black.withOpacity(0.9),
                     fontSize: 14,
                   ),
@@ -392,8 +395,8 @@ class _HomePageState extends State<HomePage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Today\'s Mood',
-            style: GoogleFonts.poppins(
+            'Lagi Gimana Nih?',
+            style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: isDarkMode ? Colors.white : kTextColor,
@@ -451,7 +454,7 @@ class _HomePageState extends State<HomePage>
             const SizedBox(height: 4),
             Text(
               mood,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.montserrat(
                 fontSize: 12,
                 color: isSelected
                     ? Colors.white
@@ -491,8 +494,8 @@ class _HomePageState extends State<HomePage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quick Actions',
-            style: GoogleFonts.poppins(
+            'Mau Ngapain Nih?',
+            style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: isDarkMode ? Colors.white : Colors.black87,
@@ -502,7 +505,7 @@ class _HomePageState extends State<HomePage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildActionButton('New Entry', Icons.menu_book,
+              _buildActionButton('Mulai Curhat!', Icons.menu_book,
                   const Color.fromARGB(255, 76, 186, 255), () async {
                 final result = await Navigator.push(
                   context,
@@ -520,13 +523,13 @@ class _HomePageState extends State<HomePage>
                 }
               }),
               _buildActionButton(
-                'Voice Note',
+                'Ngomong Aja!',
                 _isRecording ? Icons.stop : Icons.mic,
                 kSecondaryColor,
                 () => _isRecording ? _stopVoiceNote() : _startVoiceNote(),
               ),
-              _buildActionButton('Add Photo', Icons.photo_camera, kAccentColor,
-                  () async {
+              _buildActionButton(
+                  'Nambahin Foto', Icons.photo_camera, kAccentColor, () async {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -559,16 +562,19 @@ class _HomePageState extends State<HomePage>
           borderRadius: BorderRadius.circular(15),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Added for centering
+          crossAxisAlignment: CrossAxisAlignment.center, // Added for centering
           children: [
             Icon(icon, color: color, size: 28),
             const SizedBox(height: 8),
             Text(
               label,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.montserrat(
                 fontSize: 12,
                 color: color,
                 fontWeight: FontWeight.w500,
               ),
+              textAlign: TextAlign.center, // Added for centering
             ),
           ],
         ),
@@ -583,8 +589,8 @@ class _HomePageState extends State<HomePage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Recent Entries',
-            style: GoogleFonts.poppins(
+            'Curhatan Terbaru Lu!',
+            style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: isDarkMode ? Colors.white : Colors.black87,
@@ -741,7 +747,7 @@ class _HomePageState extends State<HomePage>
                         Expanded(
                           child: Text(
                             title,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                               color: isDarkMode ? Colors.white : Colors.black87,
@@ -809,7 +815,7 @@ class _HomePageState extends State<HomePage>
                       ),
                       child: Text(
                         category,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.montserrat(
                           fontSize: 12,
                           color: categoryColor.withOpacity(0.8),
                           fontWeight: FontWeight.w500,
@@ -819,7 +825,7 @@ class _HomePageState extends State<HomePage>
                     const SizedBox(height: 4),
                     Text(
                       _getRelativeTime(time),
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.montserrat(
                         fontSize: 12,
                         color: Colors.grey,
                       ),
