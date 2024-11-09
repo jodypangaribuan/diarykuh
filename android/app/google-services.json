@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "777760415815",
+    "project_id": "diarykuh",
+    "storage_bucket": "diarykuh.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:777760415815:android:ccd725f16643ff98cf1162",
+        "android_client_info": {
+          "package_name": "com.example.diarykuh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMsvJiPsRb9ReMaqQtYBLM4hoOvUtjuSg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
