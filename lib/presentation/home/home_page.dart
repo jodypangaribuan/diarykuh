@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:diarykuh/presentation/photo/photo_detail_page.dart';
+import 'package:diarykuh/presentation/photo/photo_page.dart';
 import 'package:diarykuh/presentation/voice/voice_page.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -40,6 +44,11 @@ class _HomePageState extends State<HomePage>
   final _audioRecorder = AudioRecorder();
   bool _isRecording = false;
   String? _recordingPath;
+  final Map<String, Color> categoryColors = {
+    'Note': const Color.fromARGB(255, 76, 186, 255),
+    'Album': Color(0xFFFFB7B7),
+    'Voice': kSecondaryColor,
+  };
 
   @override
   void initState() {
@@ -125,7 +134,6 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _onRefresh() async {
-    // Show loading animation
     showDialog(
       context: context,
       barrierColor: Colors.transparent,
@@ -137,11 +145,9 @@ class _HomePageState extends State<HomePage>
       ),
     );
 
-    // Perform refresh
     await _loadPreferences();
     await _loadNotes();
 
-    // Remove loading animation
     Navigator.pop(context);
   }
 
@@ -160,8 +166,7 @@ class _HomePageState extends State<HomePage>
           springAnimationDurationInMilliseconds: 1000,
           borderWidth: 2,
           child: SingleChildScrollView(
-            physics:
-                const AlwaysScrollableScrollPhysics(), // Important for refresh to work
+            physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -246,11 +251,23 @@ class _HomePageState extends State<HomePage>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [kPrimaryColor, kSecondaryColor],
+          colors: [
+            kSecondaryColor.withOpacity(0.7),
+            const Color(0xFFFFB7B7).withOpacity(0.6),
+            const Color.fromARGB(255, 76, 186, 255).withOpacity(0.5),
+          ],
+          stops: const [0.2, 0.5, 0.8],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 20,
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -267,7 +284,7 @@ class _HomePageState extends State<HomePage>
                 Text(
                   'Welcome back!',
                   style: GoogleFonts.poppins(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -275,7 +292,7 @@ class _HomePageState extends State<HomePage>
                 Text(
                   'How are you feeling today?',
                   style: GoogleFonts.poppins(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.black.withOpacity(0.9),
                     fontSize: 14,
                   ),
                 ),
@@ -404,8 +421,8 @@ class _HomePageState extends State<HomePage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildActionButton('New Entry', Icons.edit_note, kPrimaryColor,
-                  () async {
+              _buildActionButton('New Entry', Icons.menu_book,
+                  const Color.fromARGB(255, 76, 186, 255), () async {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -422,8 +439,18 @@ class _HomePageState extends State<HomePage>
                 kSecondaryColor,
                 () => _isRecording ? _stopVoiceNote() : _startVoiceNote(),
               ),
-              _buildActionButton(
-                  'Add Photo', Icons.photo_camera, kAccentColor, () {}),
+              _buildActionButton('Add Photo', Icons.photo_camera, kAccentColor,
+                  () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PhotoPage(selectedMood: selectedMood),
+                  ),
+                );
+                if (result == true) {
+                  _loadNotes();
+                }
+              }),
             ],
           ),
         ],
@@ -486,6 +513,7 @@ class _HomePageState extends State<HomePage>
                 note.timestamp,
                 note.mood,
                 hasVoice: note.voicePath != null,
+                hasPhoto: note.imagePath != null,
                 onTap: () async {
                   if (note.voicePath != null) {
                     Navigator.push(
@@ -544,7 +572,24 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildEntryCard(String title, String time, String mood,
-      {VoidCallback? onTap, VoidCallback? onDelete, bool hasVoice = false}) {
+      {VoidCallback? onTap,
+      VoidCallback? onDelete,
+      bool hasVoice = false,
+      bool hasPhoto = false}) {
+    String category;
+    Color categoryColor;
+
+    if (hasVoice) {
+      category = 'Voice';
+      categoryColor = kSecondaryColor;
+    } else if (hasPhoto) {
+      category = 'Album';
+      categoryColor = Color(0xFFFFB7B7);
+    } else {
+      category = 'Note';
+      categoryColor = const Color.fromARGB(255, 76, 186, 255);
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -561,64 +606,133 @@ class _HomePageState extends State<HomePage>
             ),
           ],
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 24,
-              child: AnimatedEmoji(
-                _getMoodAnimatedEmoji(mood),
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: isDarkMode ? Colors.white : Colors.black87,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                      if (hasVoice) ...[
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.mic,
-                          size: 16,
-                          color: kPrimaryColor,
-                        ),
-                      ],
-                    ],
-                  ),
-                  Text(
-                    _getRelativeTime(time),
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey,
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                padding: EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: categoryColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: AnimatedEmoji(
+                      _getMoodAnimatedEmoji(mood),
+                      size: 30,
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-            if (onDelete != null)
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: onDelete,
-                color: kAccentColor,
-                constraints: const BoxConstraints(),
-                padding: const EdgeInsets.only(left: 8),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: isDarkMode ? Colors.white : Colors.black87,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                        if (hasVoice ||
+                            hasPhoto ||
+                            (!hasVoice && !hasPhoto)) ...[
+                          const SizedBox(width: 8),
+                          if (hasVoice)
+                            Container(
+                              padding: EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: kPrimaryColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.mic,
+                                size: 14,
+                                color: kPrimaryColor,
+                              ),
+                            ),
+                          if (hasPhoto) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: kAccentColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.photo,
+                                size: 14,
+                                color: kAccentColor,
+                              ),
+                            ),
+                          ],
+                          if (!hasVoice && !hasPhoto) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: categoryColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.menu_book,
+                                size: 14,
+                                color: categoryColor,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: categoryColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        category,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: categoryColor.withOpacity(0.8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _getRelativeTime(time),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-          ],
+              if (onDelete != null)
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: onDelete,
+                  color: kAccentColor,
+                  constraints: const BoxConstraints(),
+                  padding: const EdgeInsets.only(left: 8),
+                ),
+            ],
+          ),
         ),
       ),
     );

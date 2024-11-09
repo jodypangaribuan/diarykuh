@@ -97,6 +97,11 @@ class DatabaseHelper {
     File(dbPath).copy(externalStoragePath);
     print('Database copied to: $externalStoragePath');
   }
+
+  List<String> getImagePaths(String content) {
+    if (content.isEmpty) return [];
+    return content.split('|');
+  }
 }
 
 // void main() async {
