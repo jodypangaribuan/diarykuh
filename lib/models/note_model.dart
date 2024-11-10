@@ -1,17 +1,17 @@
 class Note {
-  final int? id; // Make id final again, we'll handle updates differently
-  final String userId; // Add this field
+  final int? id;
+  final String userId;
   final String title;
   final String content;
   final String mood;
   final String timestamp;
   final String? voicePath;
   final String? imagePath;
-  final List<String>? imagePaths; // Update to support multiple images
+  final List<String>? imagePaths;
 
   Note({
     this.id,
-    required this.userId, // Add this field
+    required this.userId,
     required this.title,
     required this.content,
     required this.mood,
@@ -48,14 +48,14 @@ class Note {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'user_id': userId, // Add this field
+      'user_id': userId,
       'title': title,
       'content': content,
       'mood': mood,
       'timestamp': timestamp,
       'voicePath': voicePath,
       'imagePath': imagePath,
-      'imagePaths': imagePaths?.join(','), // Store as comma-separated string
+      'imagePaths': imagePaths?.join(','),
     };
   }
 
@@ -68,7 +68,7 @@ class Note {
 
     return Note(
       id: map['id'],
-      userId: map['user_id'] ?? 'default_user', // Add this field with default
+      userId: map['user_id'] ?? 'default_user',
       title: map['title'],
       content: map['content'],
       mood: map['mood'],

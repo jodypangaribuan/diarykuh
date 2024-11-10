@@ -3,7 +3,7 @@ class UserModel {
   final String name;
   final String email;
   final String phone;
-  final String password; // Add password field
+  final String password;
   final String? imagePath;
 
   UserModel({
@@ -11,7 +11,7 @@ class UserModel {
     required this.name,
     required this.email,
     required this.phone,
-    required this.password, // Add required password
+    required this.password,
     this.imagePath,
   });
 
@@ -21,7 +21,7 @@ class UserModel {
       'name': name,
       'email': email,
       'phone': phone,
-      'password': password, // Add password to map
+      'password': password,
       'imagePath': imagePath,
     };
   }
@@ -32,7 +32,7 @@ class UserModel {
       name: map['name'],
       email: map['email'],
       phone: map['phone'],
-      password: map['password'], // Add password from map
+      password: map['password'],
       imagePath: map['imagePath'],
     );
   }

@@ -67,8 +67,7 @@ class _NotePageState extends State<NotePage> {
   Future<void> _saveNote() async {
     try {
       if (!_isEdited) {
-        Navigator.of(context)
-            .pop(widget.note); // Return existing note if not edited
+        Navigator.of(context).pop(widget.note);
         return;
       }
 
@@ -87,7 +86,7 @@ class _NotePageState extends State<NotePage> {
 
       if (widget.note == null) {
         final id = await _dbHelper.insertNote(note);
-        // Create new note with the returned id
+
         final savedNote = note.copyWith(id: id);
         print('New note inserted with id: $id');
         if (mounted) Navigator.of(context).pop(savedNote);

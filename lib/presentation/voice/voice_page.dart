@@ -654,8 +654,7 @@ class BackgroundPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color =
-          kPrimaryColor.withOpacity(0.05) // Lighter opacity for subtle pattern
+      ..color = kPrimaryColor.withOpacity(0.05)
       ..style = PaintingStyle.fill;
 
     final gradientRect = Rect.fromLTWH(0, 0, size.width, size.height);
@@ -664,7 +663,7 @@ class BackgroundPatternPainter extends CustomPainter {
       end: Alignment.bottomRight,
       colors: [
         kBackgroundColor,
-        Color(0xFFEDE9FF), // Slightly darker than background
+        Color(0xFFEDE9FF),
       ],
     );
 

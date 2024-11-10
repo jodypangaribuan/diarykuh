@@ -158,8 +158,7 @@ class _PhotoPageState extends State<PhotoPage> {
             builder: (context) => PhotoDetailPage(
               image: image,
               mood: widget.selectedMood,
-              content:
-                  _images.map((img) => img.path).join('|'), // Pass image paths
+              content: _images.map((img) => img.path).join('|'),
             ),
           ),
         );

@@ -17,7 +17,6 @@ const Color kPastelMint = Color(0xFFE1FFF4);
 const Color kPastelLemon = Color(0xFFFFFBE1);
 const Color kPastelSky = Color(0xFFE1F4FF);
 
-// Gradient combinations
 const List<Color> kPastelGradient1 = [kPastelLavender, kPastelPink];
 const List<Color> kPastelGradient2 = [kPastelMint, kPastelSky];
 const List<Color> kPastelGradient3 = [kPastelLemon, kPastelPink];

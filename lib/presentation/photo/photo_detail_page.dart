@@ -2,14 +2,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_emoji/animated_emoji.dart';
-import '../../data/database_helper.dart'; // Add this import
+import '../../data/database_helper.dart';
 import 'package:diarykuh/utils/color_utils.dart';
 
 class PhotoDetailPage extends StatefulWidget {
   final File image;
   final String mood;
   final VoidCallback? onDelete;
-  final String? content; // Add this parameter
+  final String? content;
 
   const PhotoDetailPage({
     Key? key,
@@ -27,14 +27,14 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   late PageController _pageController;
   late List<String> _imagePaths;
   int _currentPage = 0;
-  final DatabaseHelper _dbHelper = DatabaseHelper(); // Add this line
+  final DatabaseHelper _dbHelper = DatabaseHelper();
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
     _imagePaths = widget.content?.isNotEmpty == true
-        ? _dbHelper.getImagePaths(widget.content!) // Use _dbHelper instance
+        ? _dbHelper.getImagePaths(widget.content!)
         : [widget.image.path];
   }
 
@@ -133,7 +133,6 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Top gradient overlay
         Container(
           height: 120,
           decoration: BoxDecoration(
@@ -147,7 +146,6 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
             ),
           ),
         ),
-        // Bottom info panel
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(

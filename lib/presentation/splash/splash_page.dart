@@ -45,7 +45,6 @@ class _SplashPageState extends State<SplashPage>
   }
 
   Future<void> _checkLoginStatus() async {
-    // Delay for minimum 2 seconds to show splash screen
     await Future.delayed(Duration(seconds: 2));
     final route = await Routes.getInitialRoute();
     if (mounted) {

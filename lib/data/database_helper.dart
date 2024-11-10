@@ -8,7 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
-  static final _databaseVersion = 4; // Increment version number
+  static final _databaseVersion = 4;
 
   factory DatabaseHelper() => _instance;
 
@@ -71,7 +71,6 @@ class DatabaseHelper {
       await db.execute('UPDATE notes SET user_id = "default_user"');
     }
     if (oldVersion < 4) {
-      // First ensure users table exists, then add password column
       await _createUsersTable(db);
     }
   }
@@ -170,11 +169,3 @@ class DatabaseHelper {
     return content.split('|');
   }
 }
-
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   DatabaseHelper dbHelper = DatabaseHelper();
-//   String dbPath = await dbHelper.getDatabasePath();
-//   print('Database path: $dbPath');
-//   await dbHelper.copyDatabaseToExternalStorage();
-// }

@@ -9,12 +9,12 @@ import 'package:diarykuh/utils/color_utils.dart';
 
 class NoteDetailPage extends StatefulWidget {
   final Note note;
-  final String userId; // Add userId parameter
+  final String userId;
 
   const NoteDetailPage({
     Key? key,
     required this.note,
-    required this.userId, // Make userId required
+    required this.userId,
   }) : super(key: key);
 
   @override
@@ -32,13 +32,12 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Guard against null _currentNote
     if (_currentNote == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
     return Scaffold(
-      backgroundColor: kBackgroundColor, // Update warna background
+      backgroundColor: kBackgroundColor,
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(context),
       body: SingleChildScrollView(
@@ -244,7 +243,6 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Decorative top element
           Center(
             child: Container(
               width: 80,
@@ -256,7 +254,6 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
             ),
           ),
           const SizedBox(height: 24),
-          // Note content
           RichText(
             text: TextSpan(
               children: [
@@ -287,7 +284,6 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
             ),
           ),
           const SizedBox(height: 24),
-          // Decorative bottom elements
           Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -410,9 +406,7 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
             ),
             child: FloatingActionButton.small(
               heroTag: 'share',
-              onPressed: () {
-                // Implement share functionality
-              },
+              onPressed: () {},
               backgroundColor: Colors.transparent,
               elevation: 0,
               child: Icon(

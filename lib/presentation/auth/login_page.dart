@@ -149,16 +149,13 @@ class _LoginPageState extends State<LoginPage> {
 
   void _handleLoginUser() async {
     if (_loginFormKey.currentState!.validate()) {
-      // Get user by email
       final user = await DatabaseHelper().getUserByEmail(_emailController.text);
 
       if (user != null && user.password == _passwordController.text) {
-        // Save user ID and login state to SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('currentUserId', user.uid);
 
-        // Navigate to home
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => HomePage()));
       } else {

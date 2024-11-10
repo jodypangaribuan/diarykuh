@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage>
   bool _isPressing = false;
   bool _isProcessing = false;
   DateTime? _lastRecordingTime;
-  bool _isStopping = false; // Add this line
+  bool _isStopping = false;
 
   @override
   void initState() {
@@ -80,10 +80,8 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _initializeApp() async {
-    // First initialize date formatting
     await initializeDateFormatting('id_ID', null);
 
-    // Then proceed with other initializations
     prefs = await SharedPreferences.getInstance();
     await _loadCurrentUser();
     await _loadPreferences();
@@ -99,9 +97,7 @@ class _HomePageState extends State<HomePage>
           currentUser = user;
         });
       }
-    } catch (e) {
-      // Silent error handling
-    }
+    } catch (e) {}
   }
 
   Future<void> _loadPreferences() async {
@@ -113,8 +109,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _loadNotes() async {
-    final notes = await _dbHelper
-        .getNotes(currentUserId); // Gunakan user ID saat load notes
+    final notes = await _dbHelper.getNotes(currentUserId);
     setState(() {
       _notes = notes;
     });
@@ -179,7 +174,6 @@ class _HomePageState extends State<HomePage>
         _isProcessing = true;
       });
 
-      // Force stop after 3 seconds if normal stop fails
       Future.delayed(const Duration(seconds: 3), () {
         if (_isStopping) {
           _forceStopRecording();
@@ -217,7 +211,7 @@ class _HomePageState extends State<HomePage>
 
   void _forceStopRecording() {
     _audioRecorder.dispose();
-    _audioRecorder = AudioRecorder(); // Create new instance
+    _audioRecorder = AudioRecorder();
     setState(() {
       _isRecording = false;
       _isProcessing = false;
@@ -591,10 +585,10 @@ class _HomePageState extends State<HomePage>
                     ),
                   ),
                 );
-                // Check if a note was returned and refresh the list
+
                 if (result is Note) {
-                  await _loadNotes(); // Refresh notes list
-                  setState(() {}); // Trigger rebuild
+                  await _loadNotes();
+                  setState(() {});
                 }
               }),
               _buildActionButton(
@@ -707,8 +701,8 @@ class _HomePageState extends State<HomePage>
           borderRadius: BorderRadius.circular(15),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Added for centering
-          crossAxisAlignment: CrossAxisAlignment.center, // Added for centering
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(icon, color: color, size: 28),
             const SizedBox(height: 8),
@@ -719,7 +713,7 @@ class _HomePageState extends State<HomePage>
                 color: color,
                 fontWeight: FontWeight.w500,
               ),
-              textAlign: TextAlign.center, // Added for centering
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -764,7 +758,7 @@ class _HomePageState extends State<HomePage>
                           timestamp: note.timestamp,
                           voicePath: note.voicePath,
                           mood: note.mood,
-                          userId: currentUserId, // Add userId
+                          userId: currentUserId,
                         ),
                       ),
                     );
@@ -775,7 +769,7 @@ class _HomePageState extends State<HomePage>
                         builder: (context) => PhotoDetailPage(
                           image: File(note.imagePath!),
                           mood: note.mood,
-                          content: note.content, // Pass content
+                          content: note.content,
                         ),
                       ),
                     );
@@ -785,7 +779,7 @@ class _HomePageState extends State<HomePage>
                       MaterialPageRoute(
                         builder: (context) => NoteDetailPage(
                           note: note,
-                          userId: currentUserId, // Add userId
+                          userId: currentUserId,
                         ),
                       ),
                     );

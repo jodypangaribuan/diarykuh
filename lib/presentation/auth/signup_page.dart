@@ -203,7 +203,6 @@ class _SignupPageState extends State<SignupPage> {
 
   void _handleSignupUser() async {
     if (_signupFormKey.currentState!.validate()) {
-      // Check if email already exists
       final existingUser =
           await DatabaseHelper().getUserByEmail(_emailController.text);
       if (existingUser != null) {
@@ -219,13 +218,12 @@ class _SignupPageState extends State<SignupPage> {
         name: _nameController.text,
         email: _emailController.text,
         phone: _phoneController.text,
-        password: _passwordController.text, // Add password
+        password: _passwordController.text,
         imagePath: _profileImage?.path,
       );
 
       await DatabaseHelper().insertUser(user);
 
-      // Don't save currentUserId on signup, only on login
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Registration successful! Please login.')));

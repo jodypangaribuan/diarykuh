@@ -106,7 +106,6 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
 
   void _handleForgetPassword() async {
     if (_forgetPasswordFormKey.currentState!.validate()) {
-      // Simulasi pengiriman link reset
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -117,11 +116,10 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
         },
       );
 
-      // Simulasi delay network
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
-        Navigator.of(context).pop(); // Tutup loading dialog
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Link reset password telah dikirim ke email Anda'),
